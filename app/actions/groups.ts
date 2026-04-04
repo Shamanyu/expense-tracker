@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase/server'
+import { sendInviteEmail } from '@/lib/email'
 
 export async function createGroup(formData: {
   name: string
@@ -116,6 +117,27 @@ export async function addMember(groupId: string, email: string) {
       })
 
     if (error) return { error: error.message }
+
+    // Send invite email (fire and forget)
+    const { data: inviterProfile } = await supabase
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', user.id)
+      .single()
+    const { data: group } = await supabase
+      .from('groups')
+      .select('name')
+      .eq('id', groupId)
+      .single()
+
+    const inviterName = inviterProfile?.full_name ?? inviterProfile?.email ?? 'Someone'
+    sendInviteEmail({
+      to: email,
+      inviterName,
+      type: 'group',
+      groupName: group?.name,
+    }).catch(() => {})
+
     revalidatePath(`/groups/${groupId}`)
     return { error: null, invited: true }
   }
