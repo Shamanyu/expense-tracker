@@ -9,7 +9,7 @@ export async function updateProfile(formData: {
 }) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  if (!user) return { error: 'Unauthorized' }
 
   const { error } = await supabase
     .from('profiles')
@@ -19,14 +19,15 @@ export async function updateProfile(formData: {
     })
     .eq('id', user.id)
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath('/account')
+  return { error: null }
 }
 
 export async function deleteAccount() {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  if (!user) return { error: 'Unauthorized' }
 
   // Delete profile (cascade handles related data)
   const { error } = await supabase
@@ -34,7 +35,8 @@ export async function deleteAccount() {
     .delete()
     .eq('id', user.id)
 
-  if (error) throw error
+  if (error) return { error: error.message }
 
   await supabase.auth.signOut()
+  return { error: null }
 }

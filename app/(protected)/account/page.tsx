@@ -47,9 +47,13 @@ export default function AccountPage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      await updateProfile({ full_name: fullName, default_currency: currency })
-      toast.success('Profile updated!')
-      queryClient.invalidateQueries({ queryKey: ['user'] })
+      const result = await updateProfile({ full_name: fullName, default_currency: currency })
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Profile updated!')
+        queryClient.invalidateQueries({ queryKey: ['user'] })
+      }
     } catch {
       toast.error('Failed to update profile')
     } finally {
@@ -65,8 +69,12 @@ export default function AccountPage() {
 
   const handleDeleteAccount = async () => {
     try {
-      await deleteAccount()
-      router.push('/')
+      const result = await deleteAccount()
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        router.push('/')
+      }
     } catch {
       toast.error('Failed to delete account')
     }

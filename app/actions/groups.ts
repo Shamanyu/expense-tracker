@@ -10,7 +10,7 @@ export async function createGroup(formData: {
 }) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  if (!user) return { error: 'Unauthorized', data: null }
 
   const { data: group, error } = await supabase
     .from('groups')
@@ -23,7 +23,7 @@ export async function createGroup(formData: {
     .select()
     .single()
 
-  if (error) throw error
+  if (error) return { error: error.message, data: null }
 
   // Add creator as admin
   const { error: memberError } = await supabase
@@ -34,10 +34,10 @@ export async function createGroup(formData: {
       role: 'admin',
     })
 
-  if (memberError) throw memberError
+  if (memberError) return { error: memberError.message, data: null }
 
   revalidatePath('/groups')
-  return group
+  return { error: null, data: group }
 }
 
 export async function updateGroup(
@@ -59,8 +59,9 @@ export async function updateGroup(
     })
     .eq('id', groupId)
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath(`/groups/${groupId}`)
+  return { error: null }
 }
 
 export async function archiveGroup(groupId: string) {
@@ -71,8 +72,9 @@ export async function archiveGroup(groupId: string) {
     .update({ archived_at: new Date().toISOString() })
     .eq('id', groupId)
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath('/groups')
+  return { error: null }
 }
 
 export async function addMember(groupId: string, email: string) {
@@ -86,7 +88,7 @@ export async function addMember(groupId: string, email: string) {
     .single()
 
   if (profileError || !profile) {
-    throw new Error('No account found with that email.')
+    return { error: 'No account found with that email.' }
   }
 
   // Check if already a member
@@ -98,7 +100,7 @@ export async function addMember(groupId: string, email: string) {
     .single()
 
   if (existing) {
-    throw new Error('This user is already a member of the group.')
+    return { error: 'This user is already a member of the group.' }
   }
 
   const { error } = await supabase
@@ -109,8 +111,9 @@ export async function addMember(groupId: string, email: string) {
       role: 'member',
     })
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath(`/groups/${groupId}`)
+  return { error: null }
 }
 
 export async function removeMember(groupId: string, memberId: string) {
@@ -122,6 +125,7 @@ export async function removeMember(groupId: string, memberId: string) {
     .eq('group_id', groupId)
     .eq('user_id', memberId)
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath(`/groups/${groupId}`)
+  return { error: null }
 }

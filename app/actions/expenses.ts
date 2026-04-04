@@ -17,7 +17,7 @@ export async function createExpense(formData: {
 }) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  if (!user) return { error: 'Unauthorized', data: null }
 
   const { data: expense, error } = await supabase
     .from('expenses')
@@ -36,7 +36,7 @@ export async function createExpense(formData: {
     .select()
     .single()
 
-  if (error) throw error
+  if (error) return { error: error.message, data: null }
 
   // Insert splits
   const splits = formData.splits.map((s) => ({
@@ -49,10 +49,10 @@ export async function createExpense(formData: {
     .from('expense_splits')
     .insert(splits)
 
-  if (splitError) throw splitError
+  if (splitError) return { error: splitError.message, data: null }
 
   revalidatePath(`/groups/${formData.group_id}`)
-  return expense
+  return { error: null, data: expense }
 }
 
 export async function updateExpense(
@@ -87,7 +87,7 @@ export async function updateExpense(
     })
     .eq('id', expenseId)
 
-  if (error) throw error
+  if (error) return { error: error.message }
 
   // Delete existing splits and reinsert
   await supabase
@@ -105,9 +105,10 @@ export async function updateExpense(
     .from('expense_splits')
     .insert(splits)
 
-  if (splitError) throw splitError
+  if (splitError) return { error: splitError.message }
 
   revalidatePath(`/groups/${formData.group_id}`)
+  return { error: null }
 }
 
 export async function deleteExpense(expenseId: string, groupId: string) {
@@ -118,6 +119,7 @@ export async function deleteExpense(expenseId: string, groupId: string) {
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', expenseId)
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath(`/groups/${groupId}`)
+  return { error: null }
 }

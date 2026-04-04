@@ -75,11 +75,15 @@ export default function GroupsPage() {
   }) => {
     setIsSubmitting(true)
     try {
-      await createGroup(data)
-      toast.success('Group created!')
-      setOpen(false)
-      queryClient.invalidateQueries({ queryKey: ['groups-with-meta'] })
-      queryClient.invalidateQueries({ queryKey: ['groups'] })
+      const result = await createGroup(data)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Group created!')
+        setOpen(false)
+        queryClient.invalidateQueries({ queryKey: ['groups-with-meta'] })
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
+      }
     } catch {
       toast.error('Failed to create group')
     } finally {

@@ -42,7 +42,7 @@ export default function EditExpensePage({
   const handleSubmit = async (data: Record<string, unknown>) => {
     setIsSubmitting(true)
     try {
-      await updateExpense(expenseId, {
+      const result = await updateExpense(expenseId, {
         group_id: groupId,
         description: data.description as string,
         amount: data.amount as number,
@@ -54,11 +54,15 @@ export default function EditExpensePage({
         notes: data.notes as string | undefined,
         splits: data.splits as { user_id: string; amount: number }[],
       })
-      toast.success('Expense updated!')
-      queryClient.invalidateQueries({ queryKey: ['expenses', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
-      router.push(`/groups/${groupId}`)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Expense updated!')
+        queryClient.invalidateQueries({ queryKey: ['expenses', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
+        router.push(`/groups/${groupId}`)
+      }
     } catch {
       toast.error('Failed to update expense')
     } finally {
@@ -68,12 +72,16 @@ export default function EditExpensePage({
 
   const handleDelete = async () => {
     try {
-      await deleteExpense(expenseId, groupId)
-      toast.success('Expense deleted')
-      queryClient.invalidateQueries({ queryKey: ['expenses', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
-      router.push(`/groups/${groupId}`)
+      const result = await deleteExpense(expenseId, groupId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Expense deleted')
+        queryClient.invalidateQueries({ queryKey: ['expenses', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
+        router.push(`/groups/${groupId}`)
+      }
     } catch {
       toast.error('Failed to delete expense')
     }

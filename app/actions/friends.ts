@@ -6,7 +6,7 @@ import { createServerClient } from '@/lib/supabase/server'
 export async function sendFriendRequest(email: string) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  if (!user) return { error: 'Unauthorized' }
 
   // Look up profile by email
   const { data: profile, error: profileError } = await supabase
@@ -16,11 +16,11 @@ export async function sendFriendRequest(email: string) {
     .single()
 
   if (profileError || !profile) {
-    throw new Error('No account found with that email.')
+    return { error: 'No account found with that email.' }
   }
 
   if (profile.id === user.id) {
-    throw new Error("You can't send a friend request to yourself.")
+    return { error: "You can't send a friend request to yourself." }
   }
 
   // Check existing friendship
@@ -33,7 +33,7 @@ export async function sendFriendRequest(email: string) {
     .single()
 
   if (existing) {
-    throw new Error('A friend request already exists with this user.')
+    return { error: 'A friend request already exists with this user.' }
   }
 
   const { error } = await supabase
@@ -44,8 +44,9 @@ export async function sendFriendRequest(email: string) {
       status: 'pending',
     })
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath('/friends')
+  return { error: null }
 }
 
 export async function acceptFriendRequest(friendshipId: string) {
@@ -56,8 +57,9 @@ export async function acceptFriendRequest(friendshipId: string) {
     .update({ status: 'accepted' })
     .eq('id', friendshipId)
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath('/friends')
+  return { error: null }
 }
 
 export async function declineFriendRequest(friendshipId: string) {
@@ -68,6 +70,7 @@ export async function declineFriendRequest(friendshipId: string) {
     .delete()
     .eq('id', friendshipId)
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath('/friends')
+  return { error: null }
 }

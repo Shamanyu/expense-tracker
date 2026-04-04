@@ -40,7 +40,7 @@ export function SettleForm({
 
     setIsLoading(true)
     try {
-      await recordSettlement({
+      const result = await recordSettlement({
         group_id: groupId,
         payer_id: payerId,
         payee_id: payeeId,
@@ -48,13 +48,17 @@ export function SettleForm({
         currency,
         notes: notes || undefined,
       })
-      toast.success('Payment recorded!')
-      queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['settlements', groupId] })
-      setPayerId('')
-      setPayeeId('')
-      setAmount('')
-      setNotes('')
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Payment recorded!')
+        queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['settlements', groupId] })
+        setPayerId('')
+        setPayeeId('')
+        setAmount('')
+        setNotes('')
+      }
     } catch {
       toast.error('Failed to record payment')
     } finally {

@@ -48,9 +48,13 @@ export default function GroupDetailPage({
 
   const handleRemoveMember = async (userId: string) => {
     try {
-      await removeMember(groupId, userId)
-      toast.success('Member removed')
-      queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+      const result = await removeMember(groupId, userId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Member removed')
+        queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+      }
     } catch {
       toast.error('Failed to remove member')
     }
@@ -58,9 +62,13 @@ export default function GroupDetailPage({
 
   const handleArchive = async () => {
     try {
-      await archiveGroup(groupId)
-      toast.success('Group archived')
-      router.push('/groups')
+      const result = await archiveGroup(groupId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Group archived')
+        router.push('/groups')
+      }
     } catch {
       toast.error('Failed to archive group')
     }

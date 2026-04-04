@@ -13,7 +13,7 @@ export async function recordSettlement(formData: {
 }) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
+  if (!user) return { error: 'Unauthorized' }
 
   const { error } = await supabase
     .from('settlements')
@@ -27,7 +27,8 @@ export async function recordSettlement(formData: {
       created_by: user.id,
     })
 
-  if (error) throw error
+  if (error) return { error: error.message }
   revalidatePath(`/settle/${formData.group_id}`)
   revalidatePath(`/groups/${formData.group_id}`)
+  return { error: null }
 }

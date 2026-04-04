@@ -19,12 +19,16 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
 
     setIsLoading(true)
     try {
-      await addMember(groupId, email.trim())
-      toast.success('Member added successfully!')
-      setEmail('')
-      queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add member')
+      const result = await addMember(groupId, email.trim())
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Member added successfully!')
+        setEmail('')
+        queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+      }
+    } catch {
+      toast.error('Failed to add member')
     } finally {
       setIsLoading(false)
     }

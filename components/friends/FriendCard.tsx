@@ -29,9 +29,13 @@ export function FriendCard({
     if (!friendshipId) return
     setIsLoading(true)
     try {
-      await acceptFriendRequest(friendshipId)
-      toast.success('Friend request accepted!')
-      queryClient.invalidateQueries({ queryKey: ['friends'] })
+      const result = await acceptFriendRequest(friendshipId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Friend request accepted!')
+        queryClient.invalidateQueries({ queryKey: ['friends'] })
+      }
     } catch {
       toast.error('Failed to accept request')
     } finally {
@@ -43,9 +47,13 @@ export function FriendCard({
     if (!friendshipId) return
     setIsLoading(true)
     try {
-      await declineFriendRequest(friendshipId)
-      toast.success('Friend request declined')
-      queryClient.invalidateQueries({ queryKey: ['friends'] })
+      const result = await declineFriendRequest(friendshipId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Friend request declined')
+        queryClient.invalidateQueries({ queryKey: ['friends'] })
+      }
     } catch {
       toast.error('Failed to decline request')
     } finally {

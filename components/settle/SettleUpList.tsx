@@ -43,16 +43,20 @@ export function SettleUpList({ groupId }: { groupId: string }) {
     const key = `${from}-${to}`
     setSettlingId(key)
     try {
-      await recordSettlement({
+      const result = await recordSettlement({
         group_id: groupId,
         payer_id: from,
         payee_id: to,
         amount,
         currency,
       })
-      toast.success('Payment recorded!')
-      queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['settlements', groupId] })
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Payment recorded!')
+        queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['settlements', groupId] })
+      }
     } catch {
       toast.error('Failed to record payment')
     } finally {

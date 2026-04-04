@@ -24,7 +24,7 @@ export default function NewExpensePage({
   const handleSubmit = async (data: Parameters<typeof createExpense>[0]['splits'] extends infer _ ? Record<string, unknown> : never) => {
     setIsSubmitting(true)
     try {
-      await createExpense({
+      const result = await createExpense({
         group_id: groupId,
         description: data.description as string,
         amount: data.amount as number,
@@ -36,12 +36,16 @@ export default function NewExpensePage({
         notes: data.notes as string | undefined,
         splits: data.splits as { user_id: string; amount: number }[],
       })
-      toast.success('Expense added!')
-      queryClient.invalidateQueries({ queryKey: ['expenses', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
-      queryClient.invalidateQueries({ queryKey: ['activity'] })
-      router.push(`/groups/${groupId}`)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Expense added!')
+        queryClient.invalidateQueries({ queryKey: ['expenses', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
+        queryClient.invalidateQueries({ queryKey: ['activity'] })
+        router.push(`/groups/${groupId}`)
+      }
     } catch {
       toast.error('Failed to add expense')
     } finally {

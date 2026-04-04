@@ -19,12 +19,16 @@ export function FriendSearch() {
 
     setIsLoading(true)
     try {
-      await sendFriendRequest(email.trim())
-      toast.success('Friend request sent!')
-      setEmail('')
-      queryClient.invalidateQueries({ queryKey: ['friends'] })
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to send request')
+      const result = await sendFriendRequest(email.trim())
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Friend request sent!')
+        setEmail('')
+        queryClient.invalidateQueries({ queryKey: ['friends'] })
+      }
+    } catch {
+      toast.error('Failed to send request')
     } finally {
       setIsLoading(false)
     }
