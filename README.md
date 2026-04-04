@@ -39,7 +39,7 @@ A full-featured expense splitting app built with Next.js, Supabase, and Tailwind
 
 ```bash
 git clone <repo-url>
-cd splitwise-clone
+cd settl
 npm install
 ```
 
