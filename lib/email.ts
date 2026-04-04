@@ -1,7 +1,6 @@
-const RESEND_API_KEY = process.env.RESEND_API_KEY
-
-// Use Resend's sandbox address for dev, your verified domain for prod
-const FROM_EMAIL = process.env.EMAIL_FROM ?? 'Settl <onboarding@resend.dev>'
+const BREVO_API_KEY = process.env.BREVO_API_KEY
+const FROM_EMAIL = process.env.EMAIL_FROM ?? 'shubhamshamanyu@gmail.com'
+const FROM_NAME = process.env.EMAIL_FROM_NAME ?? 'Settl'
 
 export async function sendInviteEmail({
   to,
@@ -14,8 +13,8 @@ export async function sendInviteEmail({
   type: 'friend' | 'group'
   groupName?: string
 }) {
-  if (!RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not set — skipping invite email')
+  if (!BREVO_API_KEY) {
+    console.warn('BREVO_API_KEY not set — skipping invite email')
     return
   }
 
@@ -53,13 +52,18 @@ export async function sendInviteEmail({
     </div>
   `
 
-  const res = await fetch('https://api.resend.com/emails', {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'api-key': BREVO_API_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+    body: JSON.stringify({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
   })
 
   if (!res.ok) {
