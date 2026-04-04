@@ -1,6 +1,8 @@
 'use client'
 
 import { useFriends } from '@/hooks/useFriends'
+import { useFriendBalances } from '@/hooks/useFriendBalances'
+import { useUser } from '@/hooks/useUser'
 import { FriendCard } from '@/components/friends/FriendCard'
 import { FriendSearch } from '@/components/friends/FriendSearch'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -9,6 +11,10 @@ import { UserCircle } from 'lucide-react'
 
 export default function FriendsPage() {
   const { data: friends, isLoading } = useFriends()
+  const { data: balances } = useFriendBalances()
+  const { data: user } = useUser()
+
+  const currency = user?.default_currency ?? 'INR'
 
   const pendingIncoming = friends?.filter(
     (f) => f.status === 'pending' && !f.is_requester
@@ -69,6 +75,8 @@ export default function FriendsPage() {
                     status={f.status}
                     friendshipId={f.friendship?.id ?? null}
                     isRequester={f.is_requester}
+                    balance={balances?.[f.profile.id]}
+                    currency={currency}
                   />
                 ))}
               </div>
@@ -89,6 +97,8 @@ export default function FriendsPage() {
                     status={f.status}
                     friendshipId={f.friendship?.id ?? null}
                     isRequester={f.is_requester}
+                    balance={balances?.[f.profile.id]}
+                    currency={currency}
                   />
                 ))}
               </div>

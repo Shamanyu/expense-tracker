@@ -15,11 +15,15 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim()) return
+    const trimmed = email.trim()
+    if (!trimmed) {
+      toast.error('Please enter an email address')
+      return
+    }
 
     setIsLoading(true)
     try {
-      const result = await addMember(groupId, email.trim())
+      const result = await addMember(groupId, trimmed)
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -30,8 +34,10 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
         )
         setEmail('')
         queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
       }
-    } catch {
+    } catch (err) {
+      console.error('addMember failed:', err)
       toast.error('Failed to add member')
     } finally {
       setIsLoading(false)
@@ -45,7 +51,7 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
         placeholder="Enter email address"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 rounded-xl border-slate-700 bg-slate-800"
+        className="flex-1 rounded-xl border-slate-700 bg-slate-900"
       />
       <Button
         type="submit"
@@ -53,7 +59,7 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
         className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
       >
         <UserPlus className="w-4 h-4 mr-1" />
-        Add
+        {isLoading ? 'Adding...' : 'Add'}
       </Button>
     </form>
   )

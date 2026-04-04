@@ -4,10 +4,15 @@ import { useQuery } from '@tanstack/react-query'
 import { createBrowserClient } from '@/lib/supabase/client'
 import type { ActivityItem } from '@/lib/types/app.types'
 
+export type ActivityItemWithImpact = ActivityItem & {
+  /** positive = you are owed, negative = you owe, 0 = neutral */
+  userImpact: number
+}
+
 export function useActivity(page = 1, pageSize = 20) {
   const supabase = createBrowserClient()
 
-  return useQuery<{ items: ActivityItem[]; hasMore: boolean }>({
+  return useQuery<{ items: ActivityItemWithImpact[]; hasMore: boolean }>({
     queryKey: ['activity', page],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -43,6 +48,21 @@ export function useActivity(page = 1, pageSize = 20) {
         .order('created_at', { ascending: false })
         .range(from, to)
 
+      // Fetch splits for these expenses to determine user impact
+      const expenseIds = (expenses ?? []).map((e) => e.id)
+      const { data: splits } = expenseIds.length > 0
+        ? await supabase
+            .from('expense_splits')
+            .select('*')
+            .in('expense_id', expenseIds)
+        : { data: [] }
+
+      const splitsByExpense: Record<string, Array<{ expense_id: string; user_id: string; amount: number }>> = {}
+      for (const s of splits ?? []) {
+        if (!splitsByExpense[s.expense_id]) splitsByExpense[s.expense_id] = []
+        splitsByExpense[s.expense_id].push(s)
+      }
+
       // Fetch recent settlements
       const { data: settlements } = await supabase
         .from('settlements')
@@ -65,7 +85,7 @@ export function useActivity(page = 1, pageSize = 20) {
         (profiles ?? []).map((p) => [p.id, p])
       )
 
-      const items: ActivityItem[] = []
+      const items: ActivityItemWithImpact[] = []
 
       for (const e of expenses ?? []) {
         const actor = profileMap.get(e.created_by)
@@ -82,6 +102,22 @@ export function useActivity(page = 1, pageSize = 20) {
           description = `updated "${e.description}"`
         }
 
+        // Compute user impact: positive = you're owed, negative = you owe
+        let userImpact = 0
+        const expSplits = splitsByExpense[e.id] ?? []
+        const mySplit = expSplits.find((s) => s.user_id === user.id)
+
+        if (e.deleted_at) {
+          userImpact = 0 // deleted — neutral
+        } else if (e.paid_by === user.id) {
+          // I paid — others owe me (total - my share)
+          const myShare = mySplit ? Number(mySplit.amount) : 0
+          userImpact = Number(e.amount) - myShare
+        } else if (mySplit) {
+          // Someone else paid — I owe my share
+          userImpact = -Number(mySplit.amount)
+        }
+
         items.push({
           id: e.id,
           type,
@@ -92,12 +128,21 @@ export function useActivity(page = 1, pageSize = 20) {
           amount: Number(e.amount),
           currency: e.currency,
           created_at: e.deleted_at ?? e.updated_at ?? e.created_at,
+          userImpact,
         })
       }
 
       for (const s of settlements ?? []) {
         const actor = profileMap.get(s.created_by)
         if (!actor) continue
+
+        // Settlement impact: if I'm payer, I paid off debt (positive). If I'm payee, I got paid (negative — reduces what's owed to me)
+        let userImpact = 0
+        if (s.payer_id === user.id) {
+          userImpact = Number(s.amount) // I paid — reducing my debt
+        } else if (s.payee_id === user.id) {
+          userImpact = -Number(s.amount) // I received — reducing what's owed to me
+        }
 
         items.push({
           id: s.id,
@@ -109,6 +154,7 @@ export function useActivity(page = 1, pageSize = 20) {
           amount: Number(s.amount),
           currency: s.currency,
           created_at: s.settled_at,
+          userImpact,
         })
       }
 

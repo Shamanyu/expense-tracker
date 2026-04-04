@@ -114,17 +114,22 @@ export default function GroupsPage() {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const activeGroups = (allGroups ?? []).filter((g) => {
+  // Filter out direct (1:1) groups — those are managed via Friends tab
+  const regularGroups = (allGroups ?? []).filter(
+    (g) => !g.group.name.startsWith('Direct:')
+  )
+
+  const activeGroups = regularGroups.filter((g) => {
     // Show group if it has a non-zero balance
     if (Math.abs(g.yourBalance) > 0.01) return true
     // Show settled groups that are less than 30 days old
     if (new Date(g.group.created_at) > thirtyDaysAgo) return true
     return false
   })
-  const settledGroups = (allGroups ?? []).filter(
+  const settledGroups = regularGroups.filter(
     (g) => Math.abs(g.yourBalance) <= 0.01 && new Date(g.group.created_at) <= thirtyDaysAgo
   )
-  const displayedGroups = showSettled ? (allGroups ?? []) : activeGroups
+  const displayedGroups = showSettled ? regularGroups : activeGroups
 
   const handleCreateGroup = async (data: {
     name: string

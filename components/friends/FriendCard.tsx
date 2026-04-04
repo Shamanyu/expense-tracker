@@ -9,27 +9,37 @@ import {
   declineFriendRequest,
   sendFriendRequest,
 } from '@/app/actions/friends'
+import { getOrCreateDirectGroup } from '@/app/actions/direct-expense'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useState } from 'react'
-import { UserPlus, Check } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { UserPlus, Plus, Check } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils/currency'
+import { cn } from '@/lib/utils'
 
 export function FriendCard({
   profile,
   status,
   friendshipId,
   isRequester,
+  balance,
+  currency,
 }: {
   profile: Profile
   status: 'accepted' | 'pending' | 'group_friend'
   friendshipId: string | null
   isRequester: boolean
+  balance?: number
+  currency?: string
 }) {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [requestSent, setRequestSent] = useState(false)
 
   const isPendingIncoming = status === 'pending' && !isRequester
+  const hasBalance = balance !== undefined && Math.abs(balance) > 0.01
 
   const handleAccept = async () => {
     if (!friendshipId) return
@@ -85,6 +95,22 @@ export function FriendCard({
     }
   }
 
+  const handleAddExpense = async () => {
+    setIsLoading(true)
+    try {
+      const result = await getOrCreateDirectGroup(profile.id)
+      if (result?.error) {
+        toast.error(result.error)
+      } else if (result?.groupId) {
+        router.push(`/groups/${result.groupId}/expenses/new`)
+      }
+    } catch {
+      toast.error('Failed to create expense')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-2xl border border-slate-700">
       <UserAvatar profile={profile} className="h-10 w-10" />
@@ -93,12 +119,29 @@ export function FriendCard({
           {profile.full_name ?? profile.email}
         </p>
         <p className="text-xs text-slate-400 truncate">{profile.email}</p>
+        {hasBalance && currency && (
+          <p className={cn(
+            'text-xs font-medium mt-0.5 tabular-nums',
+            balance > 0 ? 'text-indigo-400' : 'text-red-400'
+          )}>
+            {balance > 0
+              ? `owes you ${formatCurrency(balance, currency)}`
+              : `you owe ${formatCurrency(Math.abs(balance), currency)}`}
+          </p>
+        )}
       </div>
+      {/* Accepted friend: show balance + add expense */}
       {status === 'accepted' && (
-        <Badge variant="secondary" className="text-xs bg-indigo-950 text-indigo-400">
-          <Check className="w-3 h-3 mr-1" />
-          Friend
-        </Badge>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleAddExpense}
+          disabled={isLoading}
+          className="rounded-xl text-xs border-slate-700 text-slate-300 hover:bg-slate-700"
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          Expense
+        </Button>
       )}
       {status === 'pending' && isRequester && (
         <Badge variant="secondary" className="text-xs bg-amber-900/50 text-amber-400">
@@ -106,20 +149,44 @@ export function FriendCard({
         </Badge>
       )}
       {status === 'group_friend' && !requestSent && (
-        <Button
-          size="sm"
-          onClick={handleAddFriend}
-          disabled={isLoading}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs"
-        >
-          <UserPlus className="w-3.5 h-3.5 mr-1" />
-          Add Friend
-        </Button>
+        <div className="flex gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleAddExpense}
+            disabled={isLoading}
+            className="rounded-xl text-xs border-slate-700 text-slate-300 hover:bg-slate-700"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Expense
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAddFriend}
+            disabled={isLoading}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs"
+          >
+            <UserPlus className="w-3.5 h-3.5 mr-1" />
+            Add
+          </Button>
+        </div>
       )}
       {status === 'group_friend' && requestSent && (
-        <Badge variant="secondary" className="text-xs bg-amber-900/50 text-amber-400">
-          Request Sent
-        </Badge>
+        <div className="flex gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleAddExpense}
+            disabled={isLoading}
+            className="rounded-xl text-xs border-slate-700 text-slate-300 hover:bg-slate-700"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Expense
+          </Button>
+          <Badge variant="secondary" className="text-xs bg-amber-900/50 text-amber-400">
+            Sent
+          </Badge>
+        </div>
       )}
       {isPendingIncoming && (
         <div className="flex gap-1.5">

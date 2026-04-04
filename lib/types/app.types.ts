@@ -53,7 +53,7 @@ export const EXPENSE_CATEGORIES = [
   { label: '🏠 Stay', value: 'Stay' },
   { label: '🚗 Travel', value: 'Travel' },
   { label: '🛒 Shopping', value: 'Shopping' },
-  { label: '📦 Other', value: 'Other' },
+  { label: '💳 Other', value: 'Other' },
 ] as const
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]['value']
@@ -63,7 +63,7 @@ export const CATEGORY_EMOJI: Record<string, string> = {
   'Stay': '🏠',
   'Travel': '🚗',
   'Shopping': '🛒',
-  'Other': '📦',
+  'Other': '💳',
 }
 
 export const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {

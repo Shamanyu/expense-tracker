@@ -11,21 +11,25 @@ export function MemberList({
   isAdmin,
   currentUserId,
   onRemove,
+  membersWithBalance,
 }: {
   members: GroupMemberWithProfile[]
   isAdmin: boolean
   currentUserId: string
   onRemove: (userId: string) => void
+  membersWithBalance?: Set<string>
 }) {
   const adminCount = members.filter((m) => m.role === 'admin').length
 
   return (
     <div className="space-y-2">
       {members.map((member) => {
+        const hasBalance = membersWithBalance?.has(member.user_id) ?? false
         const canRemove =
           isAdmin &&
           member.user_id !== currentUserId &&
-          !(member.role === 'admin' && adminCount <= 1)
+          !(member.role === 'admin' && adminCount <= 1) &&
+          !hasBalance
 
         return (
           <div
@@ -45,6 +49,14 @@ export function MemberList({
               <Badge variant="secondary" className="text-xs">
                 Admin
               </Badge>
+            )}
+            {isAdmin && member.user_id !== currentUserId && hasBalance && (
+              <span
+                className="text-xs text-slate-500 cursor-default"
+                title="Settle all balances before removing this member"
+              >
+                Has balance
+              </span>
             )}
             {canRemove && (
               <Button

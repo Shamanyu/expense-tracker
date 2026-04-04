@@ -12,6 +12,7 @@ import { LogOut, User } from 'lucide-react'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { QuickAddExpense } from './QuickAddExpense'
 
 export function TopBar() {
   const { data: user } = useUser()
@@ -36,32 +37,35 @@ export function TopBar() {
         <h1 className="text-lg font-semibold text-slate-100">Settl</h1>
       </div>
       <div className="hidden md:block" />
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.avatar_url ?? undefined} alt={user?.full_name ?? 'User'} />
-                <AvatarFallback className="bg-indigo-600 text-white text-xs">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          }
-        />
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem>
-            <Link href="/account" className="flex items-center gap-2 w-full">
-              <User className="w-4 h-4" />
-              Account
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSignOut} className="text-red-400">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-3">
+        <QuickAddExpense />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.avatar_url ?? undefined} alt={user?.full_name ?? 'User'} />
+                  <AvatarFallback className="bg-indigo-600 text-white text-xs">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <Link href="/account" className="flex items-center gap-2 w-full">
+                <User className="w-4 h-4" />
+                Account
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut} className="text-red-400">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   )
 }

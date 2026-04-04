@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { removeMember } from '@/app/actions/groups'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useBalances } from '@/hooks/useBalances'
 
 export default function GroupDetailPage({
   params,
@@ -28,12 +29,20 @@ export default function GroupDetailPage({
   const { data: members = [], isLoading: membersLoading } = useGroupMembers(groupId)
   const { data: user } = useUser()
   const queryClient = useQueryClient()
+  const { data: balanceData } = useBalances(groupId)
 
   if (groupLoading || membersLoading) return <PageSkeleton />
   if (!group) return <div className="text-center py-12 text-slate-400">Group not found</div>
 
   const currentMember = members.find((m) => m.user_id === user?.id)
   const isAdmin = currentMember?.role === 'admin'
+
+  // Members with non-zero balance can't be removed
+  const membersWithBalance = new Set(
+    Object.entries(balanceData?.netBalances ?? {})
+      .filter(([, bal]) => Math.abs(bal) > 0.01)
+      .map(([id]) => id)
+  )
 
   const handleRemoveMember = async (userId: string) => {
     try {
@@ -123,6 +132,7 @@ export default function GroupDetailPage({
             isAdmin={isAdmin}
             currentUserId={user?.id ?? ''}
             onRemove={handleRemoveMember}
+            membersWithBalance={membersWithBalance}
           />
         </TabsContent>
       </Tabs>
