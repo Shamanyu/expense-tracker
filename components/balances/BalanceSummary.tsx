@@ -23,7 +23,7 @@ export function BalanceSummary({ groupId }: { groupId: string }) {
 
   if (sortedBalances.length === 0) {
     return (
-      <p className="text-sm text-slate-500 py-4 text-center">
+      <p className="text-sm text-slate-400 py-4 text-center">
         All settled up!
       </p>
     )

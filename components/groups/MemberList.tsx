@@ -30,14 +30,14 @@ export function MemberList({
         return (
           <div
             key={member.id}
-            className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-slate-50"
+            className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-slate-700/50"
           >
             <UserAvatar profile={member.profile} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">
+              <p className="text-sm font-medium text-slate-200 truncate">
                 {member.profile.full_name ?? member.profile.email}
               </p>
-              <p className="text-xs text-slate-500 truncate">
+              <p className="text-xs text-slate-400 truncate">
                 {member.profile.email}
               </p>
             </div>

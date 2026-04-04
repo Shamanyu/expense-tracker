@@ -66,9 +66,14 @@ export function SettleForm({
     }
   }
 
+  const memberName = (id: string) => {
+    const m = members.find((m) => m.user_id === id)
+    return m ? (m.profile.full_name ?? m.profile.email) : null
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-sm font-medium uppercase tracking-wider text-slate-500">
+      <h3 className="text-sm font-medium uppercase tracking-wider text-slate-400">
         Record custom payment
       </h3>
 
@@ -76,8 +81,10 @@ export function SettleForm({
         <div>
           <Label>Payer</Label>
           <Select value={payerId} onValueChange={(v) => v && setPayerId(v)}>
-            <SelectTrigger className="mt-1 rounded-xl border-slate-200">
-              <SelectValue placeholder="Who paid?" />
+            <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-800">
+              <SelectValue placeholder="Who paid?">
+                {(value) => memberName(value as string) ?? 'Who paid?'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {members.map((m) => (
@@ -91,8 +98,10 @@ export function SettleForm({
         <div>
           <Label>Payee</Label>
           <Select value={payeeId} onValueChange={(v) => v && setPayeeId(v)}>
-            <SelectTrigger className="mt-1 rounded-xl border-slate-200">
-              <SelectValue placeholder="Who received?" />
+            <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-800">
+              <SelectValue placeholder="Who received?">
+                {(value) => memberName(value as string) ?? 'Who received?'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {members

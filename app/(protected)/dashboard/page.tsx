@@ -1,8 +1,6 @@
 'use client'
 
-import { useGroups } from '@/hooks/useGroups'
 import { useUser } from '@/hooks/useUser'
-import { useBalances } from '@/hooks/useBalances'
 import { ActivityFeed } from '@/components/activity/ActivityFeed'
 import { formatCurrency } from '@/lib/utils/currency'
 import { PageSkeleton } from '@/components/common/LoadingSkeleton'
@@ -58,7 +56,6 @@ function useDashboardBalances() {
         )
 
         if (expense.paid_by === user.id) {
-          // I paid — others owe me their split amounts
           for (const split of expSplits) {
             if (split.user_id !== user.id) {
               personBalances[split.user_id] =
@@ -66,7 +63,6 @@ function useDashboardBalances() {
             }
           }
         } else {
-          // Someone else paid — I owe them my split
           const mySplit = expSplits.find((s) => s.user_id === user.id)
           if (mySplit) {
             personBalances[expense.paid_by] =
@@ -75,20 +71,16 @@ function useDashboardBalances() {
         }
       }
 
-      // Process settlements
       for (const s of settlements ?? []) {
         if (s.payer_id === user.id) {
-          // I paid someone
           personBalances[s.payee_id] =
             (personBalances[s.payee_id] ?? 0) + Number(s.amount)
         } else if (s.payee_id === user.id) {
-          // Someone paid me
           personBalances[s.payer_id] =
             (personBalances[s.payer_id] ?? 0) - Number(s.amount)
         }
       }
 
-      // Get profiles for people with non-zero balances
       const personIds = Object.keys(personBalances).filter(
         (id) => Math.abs(personBalances[id]) > 0.01
       )
@@ -139,23 +131,23 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-[22px] font-semibold text-slate-800">Dashboard</h1>
+      <h1 className="text-[22px] font-semibold text-slate-100">Dashboard</h1>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-[13px] font-medium uppercase tracking-wider text-slate-500">
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm p-4">
+          <p className="text-[13px] font-medium uppercase tracking-wider text-slate-400">
             You are owed
           </p>
-          <p className="text-2xl font-semibold text-indigo-600 mt-1 tabular-nums">
+          <p className="text-2xl font-semibold text-indigo-400 mt-1 tabular-nums">
             {formatCurrency(balances?.youAreOwed ?? 0, user?.default_currency ?? 'INR')}
           </p>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-[13px] font-medium uppercase tracking-wider text-slate-500">
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm p-4">
+          <p className="text-[13px] font-medium uppercase tracking-wider text-slate-400">
             You owe
           </p>
-          <p className="text-2xl font-semibold text-red-500 mt-1 tabular-nums">
+          <p className="text-2xl font-semibold text-red-400 mt-1 tabular-nums">
             {formatCurrency(balances?.youOwe ?? 0, user?.default_currency ?? 'INR')}
           </p>
         </div>
@@ -163,29 +155,29 @@ export default function DashboardPage() {
 
       {/* Per-person balances */}
       {(balances?.perPerson?.length ?? 0) > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-500 mb-3">
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm p-4">
+          <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
             Balances
           </h2>
           <div className="space-y-1">
             {balances?.perPerson.map((p) => (
               <div
                 key={p.userId}
-                className="flex items-center gap-3 py-2 px-2 rounded-xl hover:bg-slate-50"
+                className="flex items-center gap-3 py-2 px-2 rounded-xl hover:bg-slate-700/50"
               >
                 <UserAvatar profile={p.profile} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">
+                  <p className="text-sm font-medium text-slate-200 truncate">
                     {p.profile.full_name ?? p.profile.email}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-400">
                     {p.amount > 0 ? 'owes you' : 'you owe'}
                   </p>
                 </div>
                 <span
                   className={cn(
                     'text-sm font-medium tabular-nums',
-                    p.amount > 0 ? 'text-indigo-600' : 'text-red-500'
+                    p.amount > 0 ? 'text-indigo-400' : 'text-red-400'
                   )}
                 >
                   {formatCurrency(
@@ -200,8 +192,8 @@ export default function DashboardPage() {
       )}
 
       {/* Recent activity */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-        <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-500 mb-3">
+      <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm p-4">
+        <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
           Recent Activity
         </h2>
         <ActivityFeed limit={10} />

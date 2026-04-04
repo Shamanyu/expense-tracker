@@ -167,7 +167,7 @@ export function ExpenseForm({
         <Input
           id="description"
           {...register('description')}
-          className="mt-1 rounded-xl border-slate-200"
+          className="mt-1 rounded-xl border-slate-700 bg-slate-800"
           placeholder="What was this expense for?"
         />
         {errors.description && (
@@ -184,7 +184,7 @@ export function ExpenseForm({
             step="0.01"
             min="0.01"
             {...register('amount', { valueAsNumber: true })}
-            className="mt-1 rounded-xl border-slate-200 tabular-nums"
+            className="mt-1 rounded-xl border-slate-700 bg-slate-800 tabular-nums"
             placeholder="0.00"
           />
           {errors.amount && (
@@ -208,8 +208,13 @@ export function ExpenseForm({
           value={watch('paid_by')}
           onValueChange={(v) => v && setValue('paid_by', v)}
         >
-          <SelectTrigger className="mt-1 rounded-xl border-slate-200">
-            <SelectValue placeholder="Select who paid" />
+          <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-800">
+            <SelectValue placeholder="Select who paid">
+              {(value) => {
+                const m = members.find((m) => m.user_id === value)
+                return m ? (m.profile.full_name ?? m.profile.email) : 'Select who paid'
+              }}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {members.map((m) => (
@@ -233,7 +238,7 @@ export function ExpenseForm({
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${
                   splitType === type
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-50'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
                 {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -265,7 +270,7 @@ export function ExpenseForm({
             value={watch('category')}
             onValueChange={(v) => v && setValue('category', v)}
           >
-            <SelectTrigger className="mt-1 rounded-xl border-slate-200">
+            <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-800">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -283,7 +288,7 @@ export function ExpenseForm({
             id="date"
             type="date"
             {...register('date')}
-            className="mt-1 rounded-xl border-slate-200"
+            className="mt-1 rounded-xl border-slate-700 bg-slate-800"
           />
         </div>
       </div>
@@ -293,7 +298,7 @@ export function ExpenseForm({
         <Textarea
           id="notes"
           {...register('notes')}
-          className="mt-1 rounded-xl border-slate-200"
+          className="mt-1 rounded-xl border-slate-700 bg-slate-800"
           placeholder="Any additional details..."
           rows={2}
         />

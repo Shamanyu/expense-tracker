@@ -24,7 +24,7 @@ export function SettleUpList({ groupId }: { groupId: string }) {
   const profileMap = new Map(members.map((m) => [m.user_id, m.profile]))
 
   if (isLoading) return <ListSkeleton count={3} />
-  if (error) return <p className="text-sm text-red-500 py-4 text-center">Failed to load balances. Please try again.</p>
+  if (error) return <p className="text-sm text-red-400 py-4 text-center">Failed to load balances. Please try again.</p>
   if (!balanceData) return null
 
   const { simplifiedDebts } = balanceData
@@ -76,11 +76,11 @@ export function SettleUpList({ groupId }: { groupId: string }) {
         return (
           <div
             key={key}
-            className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-200"
+            className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-2xl border border-slate-600"
           >
             <UserAvatar profile={fromProfile} className="h-9 w-9" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-800">
+              <p className="text-sm text-slate-200">
                 <span className="font-medium">
                   {fromProfile.full_name ?? fromProfile.email}
                 </span>
@@ -89,13 +89,13 @@ export function SettleUpList({ groupId }: { groupId: string }) {
             <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
             <UserAvatar profile={toProfile} className="h-9 w-9" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-800">
+              <p className="text-sm text-slate-200">
                 <span className="font-medium">
                   {toProfile.full_name ?? toProfile.email}
                 </span>
               </p>
             </div>
-            <span className="text-sm font-medium tabular-nums text-slate-800 shrink-0">
+            <span className="text-sm font-medium tabular-nums text-slate-200 shrink-0">
               {formatCurrency(debt.amount, currency)}
             </span>
             <Button

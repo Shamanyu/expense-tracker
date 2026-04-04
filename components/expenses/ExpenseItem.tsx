@@ -23,13 +23,13 @@ export function ExpenseItem({
 
   return (
     <Link href={`/groups/${groupId}/expenses/${expense.id}/edit`}>
-      <div className="flex items-center gap-3 py-3 px-2 hover:bg-slate-50 rounded-xl transition-colors">
+      <div className="flex items-center gap-3 py-3 px-2 hover:bg-slate-700/50 rounded-xl transition-colors">
         {paidByProfile && (
           <UserAvatar profile={paidByProfile} className="h-9 w-9" />
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-slate-800 truncate">
+            <p className="text-sm font-medium text-slate-200 truncate">
               {expense.description}
             </p>
             <span
@@ -38,7 +38,7 @@ export function ExpenseItem({
               {emoji} {expense.category}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Paid by{' '}
             {expense.paid_by === currentUserId
               ? 'you'
@@ -46,7 +46,7 @@ export function ExpenseItem({
             &middot; {format(new Date(expense.date), 'MMM d, yyyy')}
           </p>
         </div>
-        <span className="text-sm font-medium tabular-nums text-slate-800">
+        <span className="text-sm font-medium tabular-nums text-slate-200">
           {formatCurrency(Number(expense.amount), expense.currency)}
         </span>
       </div>

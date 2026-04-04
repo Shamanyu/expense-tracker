@@ -58,16 +58,16 @@ export default function NewExpensePage({
       <div className="flex items-center gap-3">
         <Link
           href={`/groups/${groupId}`}
-          className="text-slate-500 hover:text-slate-700"
+          className="text-slate-400 hover:text-slate-200"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-[22px] font-semibold text-slate-800">
+        <h1 className="text-[22px] font-semibold text-slate-100">
           Add Expense
         </h1>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm p-5">
         <ExpenseForm
           groupId={groupId}
           defaultCurrency={group?.default_currency ?? 'INR'}

@@ -67,9 +67,9 @@ export const CATEGORY_EMOJI: Record<string, string> = {
 }
 
 export const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  'Food': { bg: 'bg-orange-100', text: 'text-orange-700' },
-  'Stay': { bg: 'bg-purple-100', text: 'text-purple-700' },
-  'Travel': { bg: 'bg-blue-100', text: 'text-blue-700' },
-  'Shopping': { bg: 'bg-emerald-100', text: 'text-emerald-700' },
-  'Other': { bg: 'bg-gray-100', text: 'text-gray-700' },
+  'Food': { bg: 'bg-orange-950', text: 'text-orange-300' },
+  'Stay': { bg: 'bg-purple-950', text: 'text-purple-300' },
+  'Travel': { bg: 'bg-blue-950', text: 'text-blue-300' },
+  'Shopping': { bg: 'bg-emerald-950', text: 'text-emerald-300' },
+  'Other': { bg: 'bg-slate-700', text: 'text-slate-300' },
 }

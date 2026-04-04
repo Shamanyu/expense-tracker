@@ -34,7 +34,6 @@ export default function AccountPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [initialized, setInitialized] = useState(false)
 
-  // Initialize form when user data loads
   if (user && !initialized) {
     setFullName(user.full_name ?? '')
     setCurrency(user.default_currency)
@@ -82,20 +81,20 @@ export default function AccountPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <h1 className="text-[22px] font-semibold text-slate-800">Account</h1>
+      <h1 className="text-[22px] font-semibold text-slate-100">Account</h1>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
+      <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm p-5 space-y-5">
         <div className="flex items-center gap-4">
           <UserAvatar profile={user} className="h-14 w-14 text-lg" />
           <div>
-            <p className="font-medium text-slate-800">
+            <p className="font-medium text-slate-100">
               {user.full_name ?? 'No name set'}
             </p>
-            <p className="text-sm text-slate-500">{user.email}</p>
+            <p className="text-sm text-slate-400">{user.email}</p>
           </div>
         </div>
 
-        <Separator />
+        <Separator className="bg-slate-700" />
 
         <div>
           <Label htmlFor="fullName">Display Name</Label>
@@ -103,7 +102,7 @@ export default function AccountPage() {
             id="fullName"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-1 rounded-xl border-slate-200"
+            className="mt-1 rounded-xl border-slate-700 bg-slate-900"
           />
         </div>
 
@@ -126,22 +125,22 @@ export default function AccountPage() {
       <Button
         variant="outline"
         onClick={handleSignOut}
-        className="w-full rounded-xl border-slate-200"
+        className="w-full rounded-xl border-slate-700 text-slate-200 hover:bg-slate-800"
       >
         <LogOut className="w-4 h-4 mr-2" />
         Sign Out
       </Button>
 
-      <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-5">
-        <h2 className="text-sm font-semibold text-red-600 mb-2">Danger Zone</h2>
-        <p className="text-sm text-slate-500 mb-4">
+      <div className="bg-slate-800 rounded-2xl border border-red-900/50 shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-red-400 mb-2">Danger Zone</h2>
+        <p className="text-sm text-slate-400 mb-4">
           Permanently delete your account and all associated data. This action
           cannot be undone.
         </p>
         <Button
           variant="outline"
           onClick={() => setDeleteDialogOpen(true)}
-          className="text-red-500 border-red-200 hover:bg-red-50 rounded-xl"
+          className="text-red-400 border-red-900/50 hover:bg-red-950 rounded-xl"
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Delete My Account

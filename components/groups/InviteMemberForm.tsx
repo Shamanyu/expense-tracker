@@ -45,7 +45,7 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
         placeholder="Enter email address"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 rounded-xl border-slate-200"
+        className="flex-1 rounded-xl border-slate-700 bg-slate-800"
       />
       <Button
         type="submit"

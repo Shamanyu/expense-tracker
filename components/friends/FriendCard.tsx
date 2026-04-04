@@ -62,13 +62,13 @@ export function FriendCard({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-200">
+    <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-2xl border border-slate-700">
       <UserAvatar profile={profile} className="h-10 w-10" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-800 truncate">
+        <p className="text-sm font-medium text-slate-200 truncate">
           {profile.full_name ?? profile.email}
         </p>
-        <p className="text-xs text-slate-500 truncate">{profile.email}</p>
+        <p className="text-xs text-slate-400 truncate">{profile.email}</p>
       </div>
       {status === 'pending' && isRequester && (
         <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-600">

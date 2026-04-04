@@ -22,7 +22,7 @@ export default function FriendsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-[22px] font-semibold text-slate-800">Friends</h1>
+      <h1 className="text-[22px] font-semibold text-slate-100">Friends</h1>
 
       <FriendSearch />
 
@@ -33,7 +33,7 @@ export default function FriendsPage() {
           {/* Pending incoming requests */}
           {(pendingIncoming?.length ?? 0) > 0 && (
             <div>
-              <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-500 mb-3">
+              <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
                 Friend Requests
               </h2>
               <div className="space-y-2">
@@ -53,7 +53,7 @@ export default function FriendsPage() {
           {/* Friends */}
           {(accepted?.length ?? 0) > 0 ? (
             <div>
-              <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-500 mb-3">
+              <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
                 Your Friends
               </h2>
               <div className="space-y-2">
@@ -81,7 +81,7 @@ export default function FriendsPage() {
           {/* Pending outgoing */}
           {(pendingOutgoing?.length ?? 0) > 0 && (
             <div>
-              <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-500 mb-3">
+              <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
                 Pending Requests
               </h2>
               <div className="space-y-2">

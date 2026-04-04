@@ -28,7 +28,7 @@ export function ActivityFeed({ limit }: { limit?: number }) {
 
   return (
     <div>
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-slate-700">
         {items.map((item) => (
           <ActivityItem key={`${item.type}-${item.id}`} item={item} />
         ))}

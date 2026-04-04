@@ -36,7 +36,7 @@ export function ExpenseList({ groupId }: { groupId: string }) {
 
   return (
     <div>
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-slate-700">
         {data.data.map((expense) => (
           <ExpenseItem
             key={expense.id}
@@ -58,7 +58,7 @@ export function ExpenseList({ groupId }: { groupId: string }) {
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-400">
             Page {page} of {totalPages}
           </span>
           <Button

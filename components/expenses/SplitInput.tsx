@@ -21,7 +21,7 @@ function CheckboxInput({
       className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
         checked
           ? 'bg-indigo-600 border-indigo-600 text-white'
-          : 'border-slate-300 bg-white'
+          : 'border-slate-600 bg-slate-800'
       }`}
     >
       {checked && (
@@ -67,7 +67,7 @@ export function SplitInput({
               }
             />
             <UserAvatar profile={m.profile} className="h-7 w-7" />
-            <span className="flex-1 text-sm text-slate-700 truncate">
+            <span className="flex-1 text-sm text-slate-200 truncate">
               {m.profile.full_name ?? m.profile.email}
             </span>
             {values[m.user_id] === 1 && (
@@ -90,7 +90,7 @@ export function SplitInput({
         {members.map((m) => (
           <div key={m.user_id} className="flex items-center gap-3 py-1.5">
             <UserAvatar profile={m.profile} className="h-7 w-7" />
-            <span className="flex-1 text-sm text-slate-700 truncate">
+            <span className="flex-1 text-sm text-slate-200 truncate">
               {m.profile.full_name ?? m.profile.email}
             </span>
             <Input
@@ -101,11 +101,11 @@ export function SplitInput({
               onChange={(e) =>
                 handleChange(m.user_id, parseFloat(e.target.value) || 0)
               }
-              className="w-28 rounded-xl border-slate-200 tabular-nums text-right"
+              className="w-28 rounded-xl border-slate-700 tabular-nums text-right"
             />
           </div>
         ))}
-        <div className="flex justify-end pt-2 border-t border-slate-100">
+        <div className="flex justify-end pt-2 border-t border-slate-700">
           <span
             className={`text-sm font-medium tabular-nums ${
               Math.abs(diff) < 0.01
@@ -130,7 +130,7 @@ export function SplitInput({
         {members.map((m) => (
           <div key={m.user_id} className="flex items-center gap-3 py-1.5">
             <UserAvatar profile={m.profile} className="h-7 w-7" />
-            <span className="flex-1 text-sm text-slate-700 truncate">
+            <span className="flex-1 text-sm text-slate-200 truncate">
               {m.profile.full_name ?? m.profile.email}
             </span>
             <div className="flex items-center gap-1">
@@ -143,7 +143,7 @@ export function SplitInput({
                 onChange={(e) =>
                   handleChange(m.user_id, parseFloat(e.target.value) || 0)
                 }
-                className="w-20 rounded-xl border-slate-200 tabular-nums text-right"
+                className="w-20 rounded-xl border-slate-700 tabular-nums text-right"
               />
               <span className="text-sm text-slate-500">%</span>
             </div>
@@ -155,7 +155,7 @@ export function SplitInput({
             </span>
           </div>
         ))}
-        <div className="flex justify-end pt-2 border-t border-slate-100">
+        <div className="flex justify-end pt-2 border-t border-slate-700">
           <span
             className={`text-sm font-medium ${
               Math.abs(totalPct - 100) < 0.1
@@ -183,7 +183,7 @@ export function SplitInput({
         return (
           <div key={m.user_id} className="flex items-center gap-3 py-1.5">
             <UserAvatar profile={m.profile} className="h-7 w-7" />
-            <span className="flex-1 text-sm text-slate-700 truncate">
+            <span className="flex-1 text-sm text-slate-200 truncate">
               {m.profile.full_name ?? m.profile.email}
             </span>
             <Input
@@ -194,7 +194,7 @@ export function SplitInput({
               onChange={(e) =>
                 handleChange(m.user_id, parseInt(e.target.value) || 0)
               }
-              className="w-20 rounded-xl border-slate-200 tabular-nums text-right"
+              className="w-20 rounded-xl border-slate-700 tabular-nums text-right"
               placeholder="0"
             />
             <span className="text-xs text-slate-400 tabular-nums font-mono w-20 text-right">

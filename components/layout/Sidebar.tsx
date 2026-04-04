@@ -5,10 +5,8 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Users,
-  Receipt,
-  Activity,
-  Settings,
   UserCircle,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,7 +14,6 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/groups', label: 'Groups', icon: Users },
   { href: '/friends', label: 'Friends', icon: UserCircle },
-  { href: '/activity', label: 'Activity', icon: Activity },
   { href: '/account', label: 'Account', icon: Settings },
 ]
 
@@ -24,7 +21,7 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col bg-slate-900 min-h-screen">
+    <aside className="hidden md:flex md:w-64 md:flex-col bg-slate-950 min-h-screen">
       <div className="flex items-center h-16 px-6">
         <Link href="/dashboard" className="text-white text-xl font-semibold tracking-tight">
           Settl
