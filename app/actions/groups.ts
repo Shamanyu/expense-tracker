@@ -99,24 +99,22 @@ export async function addMember(groupId: string, email: string) {
       .eq('status', 'pending')
       .single()
 
-    if (existingInvite) {
-      return { error: 'This email already has a pending invite to this group.' }
-    }
-
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    const { error } = await supabase
-      .from('invitations')
-      .insert({
-        inviter_id: user.id,
-        email,
-        type: 'group',
-        group_id: groupId,
-        status: 'pending',
-      })
+    if (!existingInvite) {
+      const { error } = await supabase
+        .from('invitations')
+        .insert({
+          inviter_id: user.id,
+          email,
+          type: 'group',
+          group_id: groupId,
+          status: 'pending',
+        })
 
-    if (error) return { error: error.message }
+      if (error) return { error: error.message }
+    }
 
     // Send invite email (fire and forget)
     const { data: inviterProfile } = await supabase

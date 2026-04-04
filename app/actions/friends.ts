@@ -38,22 +38,20 @@ export async function sendFriendRequest(email: string) {
       .eq('status', 'pending')
       .single()
 
-    if (existingInvite) {
-      return { error: 'You already have a pending invite for this email.' }
+    if (!existingInvite) {
+      const { error } = await supabase
+        .from('invitations')
+        .insert({
+          inviter_id: user.id,
+          email,
+          type: 'friend',
+          status: 'pending',
+        })
+
+      if (error) return { error: error.message }
     }
 
-    const { error } = await supabase
-      .from('invitations')
-      .insert({
-        inviter_id: user.id,
-        email,
-        type: 'friend',
-        status: 'pending',
-      })
-
-    if (error) return { error: error.message }
-
-    // Send invite email (fire and forget)
+    // Send invite email (fire and forget) — resend even if invite already exists
     const inviterName = currentProfile?.full_name ?? currentProfile?.email ?? 'Someone'
     sendInviteEmail({ to: email, inviterName, type: 'friend' }).catch(() => {})
 
