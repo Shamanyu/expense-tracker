@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils/currency'
-import { CATEGORY_COLORS } from '@/lib/types/app.types'
+import { CATEGORY_COLORS, CATEGORY_EMOJI } from '@/lib/types/app.types'
 import type { Expense, Profile } from '@/lib/types/database.types'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { format } from 'date-fns'
@@ -18,7 +18,8 @@ export function ExpenseItem({
   currentUserId: string
   groupId: string
 }) {
-  const categoryStyle = CATEGORY_COLORS[expense.category] ?? CATEGORY_COLORS['General']
+  const categoryStyle = CATEGORY_COLORS[expense.category] ?? CATEGORY_COLORS['Other']
+  const emoji = CATEGORY_EMOJI[expense.category] ?? '📦'
 
   return (
     <Link href={`/groups/${groupId}/expenses/${expense.id}/edit`}>
@@ -34,7 +35,7 @@ export function ExpenseItem({
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryStyle.bg} ${categoryStyle.text}`}
             >
-              {expense.category}
+              {emoji} {expense.category}
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">

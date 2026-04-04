@@ -12,7 +12,13 @@ import { UserAvatar } from '@/components/common/UserAvatar'
 import { PageSkeleton } from '@/components/common/LoadingSkeleton'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Settings, HandCoins } from 'lucide-react'
+import { Plus, Settings, HandCoins, Archive } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
 import { removeMember, archiveGroup } from '@/app/actions/groups'
 import { useQueryClient } from '@tanstack/react-query'
@@ -112,13 +118,24 @@ export default function GroupDetailPage({
             </Button>
           </Link>
           {isAdmin && (
-            <Button
-              variant="outline"
-              onClick={() => setArchiveDialogOpen(true)}
-              className="rounded-xl border-slate-200"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="rounded-xl border-slate-200"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setArchiveDialogOpen(true)} className="text-red-500">
+                  <Archive className="w-4 h-4 mr-2" />
+                  Archive Group
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

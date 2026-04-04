@@ -35,10 +35,10 @@ export function useActivity(page = 1, pageSize = 20) {
       const from = (page - 1) * pageSize
       const to = from + pageSize
 
-      // Fetch recent expenses (including soft-deleted for "deleted" activity)
+      // Fetch recent expenses
       const { data: expenses } = await supabase
         .from('expenses')
-        .select('*, created_by_profile:profiles!expenses_created_by_fkey(*)')
+        .select('*')
         .in('group_id', groupIds)
         .order('created_at', { ascending: false })
         .range(from, to)
@@ -46,15 +46,29 @@ export function useActivity(page = 1, pageSize = 20) {
       // Fetch recent settlements
       const { data: settlements } = await supabase
         .from('settlements')
-        .select('*, created_by_profile:profiles!settlements_created_by_fkey(*)')
+        .select('*')
         .in('group_id', groupIds)
         .order('settled_at', { ascending: false })
         .range(from, to)
 
+      // Fetch all relevant profiles
+      const profileIds = new Set<string>()
+      for (const e of expenses ?? []) profileIds.add(e.created_by)
+      for (const s of settlements ?? []) profileIds.add(s.created_by)
+
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', Array.from(profileIds))
+
+      const profileMap = new Map(
+        (profiles ?? []).map((p) => [p.id, p])
+      )
+
       const items: ActivityItem[] = []
 
       for (const e of expenses ?? []) {
-        const actor = e.created_by_profile
+        const actor = profileMap.get(e.created_by)
         if (!actor) continue
 
         let type: ActivityItem['type'] = 'expense_added'
@@ -82,7 +96,7 @@ export function useActivity(page = 1, pageSize = 20) {
       }
 
       for (const s of settlements ?? []) {
-        const actor = s.created_by_profile
+        const actor = profileMap.get(s.created_by)
         if (!actor) continue
 
         items.push({

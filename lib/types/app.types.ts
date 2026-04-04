@@ -49,29 +49,27 @@ export type DebtSimplification = {
 export type SplitType = 'equal' | 'exact' | 'percentage' | 'shares'
 
 export const EXPENSE_CATEGORIES = [
-  'Food & Drink',
-  'Transport',
-  'Accommodation',
-  'Entertainment',
-  'Utilities',
-  'Shopping',
-  'Health',
-  'Travel',
-  'General',
-  'Other',
+  { label: '🍔 Food', value: 'Food' },
+  { label: '🏠 Stay', value: 'Stay' },
+  { label: '🚗 Travel', value: 'Travel' },
+  { label: '🛒 Shopping', value: 'Shopping' },
+  { label: '📦 Other', value: 'Other' },
 ] as const
 
-export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]['value']
+
+export const CATEGORY_EMOJI: Record<string, string> = {
+  'Food': '🍔',
+  'Stay': '🏠',
+  'Travel': '🚗',
+  'Shopping': '🛒',
+  'Other': '📦',
+}
 
 export const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  'Food & Drink': { bg: 'bg-orange-100', text: 'text-orange-700' },
-  'Transport': { bg: 'bg-blue-100', text: 'text-blue-700' },
-  'Accommodation': { bg: 'bg-purple-100', text: 'text-purple-700' },
-  'Entertainment': { bg: 'bg-pink-100', text: 'text-pink-700' },
-  'Utilities': { bg: 'bg-yellow-100', text: 'text-yellow-700' },
+  'Food': { bg: 'bg-orange-100', text: 'text-orange-700' },
+  'Stay': { bg: 'bg-purple-100', text: 'text-purple-700' },
+  'Travel': { bg: 'bg-blue-100', text: 'text-blue-700' },
   'Shopping': { bg: 'bg-emerald-100', text: 'text-emerald-700' },
-  'Health': { bg: 'bg-red-100', text: 'text-red-700' },
-  'Travel': { bg: 'bg-cyan-100', text: 'text-cyan-700' },
-  'General': { bg: 'bg-slate-100', text: 'text-slate-700' },
   'Other': { bg: 'bg-gray-100', text: 'text-gray-700' },
 }

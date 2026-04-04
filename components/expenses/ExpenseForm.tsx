@@ -74,7 +74,7 @@ export function ExpenseForm({
       amount: expense ? Number(expense.amount) : undefined,
       currency: expense?.currency ?? defaultCurrency,
       paid_by: expense?.paid_by ?? user?.id ?? '',
-      category: expense?.category ?? 'General',
+      category: expense?.category ?? 'Other',
       date: expense?.date ?? new Date().toISOString().split('T')[0],
       notes: expense?.notes ?? '',
     },
@@ -270,8 +270,8 @@ export function ExpenseForm({
             </SelectTrigger>
             <SelectContent>
               {EXPENSE_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
                 </SelectItem>
               ))}
             </SelectContent>

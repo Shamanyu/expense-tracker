@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 import { useState } from 'react'
 
 export function SettleUpList({ groupId }: { groupId: string }) {
-  const { data: balanceData, isLoading } = useBalances(groupId)
+  const { data: balanceData, isLoading, error } = useBalances(groupId)
   const { data: members = [] } = useGroupMembers(groupId)
   const { data: group } = useGroup(groupId)
   const queryClient = useQueryClient()
@@ -24,6 +24,7 @@ export function SettleUpList({ groupId }: { groupId: string }) {
   const profileMap = new Map(members.map((m) => [m.user_id, m.profile]))
 
   if (isLoading) return <ListSkeleton count={3} />
+  if (error) return <p className="text-sm text-red-500 py-4 text-center">Failed to load balances. Please try again.</p>
   if (!balanceData) return null
 
   const { simplifiedDebts } = balanceData
