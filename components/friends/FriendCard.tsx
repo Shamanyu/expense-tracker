@@ -4,10 +4,15 @@ import { UserAvatar } from '@/components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { Profile } from '@/lib/types/database.types'
-import { acceptFriendRequest, declineFriendRequest } from '@/app/actions/friends'
+import {
+  acceptFriendRequest,
+  declineFriendRequest,
+  sendFriendRequest,
+} from '@/app/actions/friends'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useState } from 'react'
+import { UserPlus, Check } from 'lucide-react'
 
 export function FriendCard({
   profile,
@@ -22,6 +27,7 @@ export function FriendCard({
 }) {
   const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
+  const [requestSent, setRequestSent] = useState(false)
 
   const isPendingIncoming = status === 'pending' && !isRequester
 
@@ -61,6 +67,24 @@ export function FriendCard({
     }
   }
 
+  const handleAddFriend = async () => {
+    setIsLoading(true)
+    try {
+      const result = await sendFriendRequest(profile.email)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Friend request sent!')
+        setRequestSent(true)
+        queryClient.invalidateQueries({ queryKey: ['friends'] })
+      }
+    } catch {
+      toast.error('Failed to send friend request')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-2xl border border-slate-700">
       <UserAvatar profile={profile} className="h-10 w-10" />
@@ -70,14 +94,31 @@ export function FriendCard({
         </p>
         <p className="text-xs text-slate-400 truncate">{profile.email}</p>
       </div>
+      {status === 'accepted' && (
+        <Badge variant="secondary" className="text-xs bg-indigo-950 text-indigo-400">
+          <Check className="w-3 h-3 mr-1" />
+          Friend
+        </Badge>
+      )}
       {status === 'pending' && isRequester && (
-        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-600">
+        <Badge variant="secondary" className="text-xs bg-amber-900/50 text-amber-400">
           Pending
         </Badge>
       )}
-      {status === 'group_friend' && (
-        <Badge variant="secondary" className="text-xs">
-          Group member
+      {status === 'group_friend' && !requestSent && (
+        <Button
+          size="sm"
+          onClick={handleAddFriend}
+          disabled={isLoading}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs"
+        >
+          <UserPlus className="w-3.5 h-3.5 mr-1" />
+          Add Friend
+        </Button>
+      )}
+      {status === 'group_friend' && requestSent && (
+        <Badge variant="secondary" className="text-xs bg-amber-900/50 text-amber-400">
+          Request Sent
         </Badge>
       )}
       {isPendingIncoming && (

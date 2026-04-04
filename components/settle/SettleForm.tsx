@@ -36,7 +36,7 @@ export function SettleForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!payerId || !payeeId || !amount) return
+    if (!payerId || !payeeId || !amount || payerId === payeeId) return
 
     setIsLoading(true)
     try {
@@ -54,6 +54,8 @@ export function SettleForm({
         toast.success('Payment recorded!')
         queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
         queryClient.invalidateQueries({ queryKey: ['settlements', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
+        queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
         setPayerId('')
         setPayeeId('')
         setAmount('')
@@ -125,7 +127,7 @@ export function SettleForm({
             min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="mt-1 rounded-xl border-slate-200 tabular-nums"
+            className="mt-1 rounded-xl border-slate-700 bg-slate-900 tabular-nums"
             placeholder="0.00"
           />
         </div>
@@ -142,7 +144,7 @@ export function SettleForm({
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="mt-1 rounded-xl border-slate-200"
+          className="mt-1 rounded-xl border-slate-700 bg-slate-900"
           rows={2}
           placeholder="e.g. Venmo payment"
         />
@@ -150,7 +152,7 @@ export function SettleForm({
 
       <Button
         type="submit"
-        disabled={isLoading || !payerId || !payeeId || !amount}
+        disabled={isLoading || !payerId || !payeeId || !amount || payerId === payeeId}
         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
       >
         {isLoading ? 'Recording...' : 'Record Payment'}

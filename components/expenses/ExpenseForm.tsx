@@ -23,6 +23,7 @@ import { EXPENSE_CATEGORIES } from '@/lib/types/app.types'
 import type { SplitType } from '@/lib/types/app.types'
 import { calculateSplit, validateSplit, type SplitInput as SplitInputType } from '@/lib/utils/split'
 import type { Expense, ExpenseSplit } from '@/lib/types/database.types'
+import { toast } from 'sonner'
 
 const expenseSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -138,6 +139,7 @@ export function ExpenseForm({
 
     const validation = validateSplit(splitType, data.amount, splitInputs)
     if (!validation.valid) {
+      toast.error(validation.message || 'Invalid split configuration')
       return
     }
 
@@ -167,7 +169,7 @@ export function ExpenseForm({
         <Input
           id="description"
           {...register('description')}
-          className="mt-1 rounded-xl border-slate-700 bg-slate-800"
+          className="mt-1 rounded-xl border-slate-700 bg-slate-900"
           placeholder="What was this expense for?"
         />
         {errors.description && (
@@ -184,7 +186,7 @@ export function ExpenseForm({
             step="0.01"
             min="0.01"
             {...register('amount', { valueAsNumber: true })}
-            className="mt-1 rounded-xl border-slate-700 bg-slate-800 tabular-nums"
+            className="mt-1 rounded-xl border-slate-700 bg-slate-900 tabular-nums"
             placeholder="0.00"
           />
           {errors.amount && (
@@ -208,7 +210,7 @@ export function ExpenseForm({
           value={watch('paid_by')}
           onValueChange={(v) => v && setValue('paid_by', v)}
         >
-          <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-800">
+          <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-900">
             <SelectValue placeholder="Select who paid">
               {(value) => {
                 const m = members.find((m) => m.user_id === value)
@@ -228,7 +230,7 @@ export function ExpenseForm({
 
       <div>
         <Label>Split type</Label>
-        <div className="mt-1 flex rounded-xl border border-slate-200 overflow-hidden">
+        <div className="mt-1 flex rounded-xl border border-slate-700 overflow-hidden">
           {(['equal', 'exact', 'percentage', 'shares'] as SplitType[]).map(
             (type) => (
               <button
@@ -270,7 +272,7 @@ export function ExpenseForm({
             value={watch('category')}
             onValueChange={(v) => v && setValue('category', v)}
           >
-            <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-800">
+            <SelectTrigger className="mt-1 rounded-xl border-slate-700 bg-slate-900">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -288,7 +290,7 @@ export function ExpenseForm({
             id="date"
             type="date"
             {...register('date')}
-            className="mt-1 rounded-xl border-slate-700 bg-slate-800"
+            className="mt-1 rounded-xl border-slate-700 bg-slate-900"
           />
         </div>
       </div>
@@ -298,7 +300,7 @@ export function ExpenseForm({
         <Textarea
           id="notes"
           {...register('notes')}
-          className="mt-1 rounded-xl border-slate-700 bg-slate-800"
+          className="mt-1 rounded-xl border-slate-700 bg-slate-900"
           placeholder="Any additional details..."
           rows={2}
         />

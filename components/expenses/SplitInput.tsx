@@ -109,7 +109,7 @@ export function SplitInput({
           <span
             className={`text-sm font-medium tabular-nums ${
               Math.abs(diff) < 0.01
-                ? 'text-indigo-600'
+                ? 'text-indigo-400'
                 : 'text-red-500'
             }`}
           >
@@ -159,7 +159,7 @@ export function SplitInput({
           <span
             className={`text-sm font-medium ${
               Math.abs(totalPct - 100) < 0.1
-                ? 'text-indigo-600'
+                ? 'text-indigo-400'
                 : 'text-red-500'
             }`}
           >

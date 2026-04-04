@@ -18,13 +18,13 @@ export default function ProtectedError({
   return (
     <div className="flex items-center justify-center py-20">
       <div className="text-center px-6">
-        <div className="rounded-full bg-red-100 p-4 mb-4 inline-flex">
-          <AlertTriangle className="w-8 h-8 text-red-500" />
+        <div className="rounded-full bg-red-900/50 p-4 mb-4 inline-flex">
+          <AlertTriangle className="w-8 h-8 text-red-400" />
         </div>
-        <h2 className="text-xl font-semibold text-slate-800 mb-2">
+        <h2 className="text-xl font-semibold text-slate-100 mb-2">
           Something went wrong
         </h2>
-        <p className="text-sm text-slate-500 mb-6 max-w-sm">
+        <p className="text-sm text-slate-400 mb-6 max-w-sm">
           An unexpected error occurred. Please try again.
         </p>
         <Button

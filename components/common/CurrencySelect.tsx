@@ -92,7 +92,7 @@ export function CurrencySelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between rounded-xl border-slate-200 bg-white text-left font-normal"
+            className="w-full justify-between rounded-xl border-slate-700 bg-slate-900 text-left font-normal text-slate-200"
           />
         }
       >
@@ -101,7 +101,7 @@ export function CurrencySelect({
             {selected.flag} {selected.code} &mdash; {selected.name}
           </span>
         ) : (
-          <span className="text-slate-500">Select currency...</span>
+          <span className="text-slate-400">Select currency...</span>
         )}
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </PopoverTrigger>

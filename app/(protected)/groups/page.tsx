@@ -66,9 +66,13 @@ function useMyGroups() {
         .in('group_id', groupIds)
         .is('deleted_at', null)
 
-      const { data: splits } = await supabase
-        .from('expense_splits')
-        .select('*')
+      const expenseIds = (expenses ?? []).map((e) => e.id)
+      const { data: splits } = expenseIds.length > 0
+        ? await supabase
+            .from('expense_splits')
+            .select('*')
+            .in('expense_id', expenseIds)
+        : { data: [] }
 
       const { data: settlements } = await supabase
         .from('settlements')
@@ -107,8 +111,19 @@ export default function GroupsPage() {
   const [showSettled, setShowSettled] = useState(false)
   const queryClient = useQueryClient()
 
-  const activeGroups = (allGroups ?? []).filter((g) => Math.abs(g.yourBalance) > 0.01)
-  const settledGroups = (allGroups ?? []).filter((g) => Math.abs(g.yourBalance) <= 0.01)
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const activeGroups = (allGroups ?? []).filter((g) => {
+    // Show group if it has a non-zero balance
+    if (Math.abs(g.yourBalance) > 0.01) return true
+    // Show settled groups that are less than 30 days old
+    if (new Date(g.group.created_at) > thirtyDaysAgo) return true
+    return false
+  })
+  const settledGroups = (allGroups ?? []).filter(
+    (g) => Math.abs(g.yourBalance) <= 0.01 && new Date(g.group.created_at) <= thirtyDaysAgo
+  )
   const displayedGroups = showSettled ? (allGroups ?? []) : activeGroups
 
   const handleCreateGroup = async (data: {
@@ -128,14 +143,26 @@ export default function GroupsPage() {
         toast.error(result.error)
       } else {
         // Add members if any
+        let invited = 0
+        let added = 0
         if (data.memberEmails?.length && result?.data?.id) {
           for (const email of data.memberEmails) {
             if (email.trim()) {
-              await addMember(result.data.id, email.trim())
+              const memberResult = await addMember(result.data.id, email.trim())
+              if (memberResult?.error) {
+                toast.error(`${email}: ${memberResult.error}`)
+              } else if (memberResult?.invited) {
+                invited++
+              } else {
+                added++
+              }
             }
           }
         }
-        toast.success('Group created!')
+        const parts: string[] = ['Group created!']
+        if (added > 0) parts.push(`${added} member${added > 1 ? 's' : ''} added.`)
+        if (invited > 0) parts.push(`${invited} invite${invited > 1 ? 's' : ''} sent — they'll be added when they join Settl.`)
+        toast.success(parts.join(' '))
         setOpen(false)
         queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
         queryClient.invalidateQueries({ queryKey: ['groups'] })

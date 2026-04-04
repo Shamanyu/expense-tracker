@@ -49,7 +49,7 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
       />
       <Button
         type="submit"
-        disabled={isLoading || !email.trim()}
+        disabled={isLoading}
         className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
       >
         <UserPlus className="w-4 h-4 mr-1" />

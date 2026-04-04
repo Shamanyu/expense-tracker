@@ -57,6 +57,8 @@ export function SettleUpList({ groupId }: { groupId: string }) {
         toast.success('Payment recorded!')
         queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
         queryClient.invalidateQueries({ queryKey: ['settlements', groupId] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
+        queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
       }
     } catch {
       toast.error('Failed to record payment')
@@ -76,36 +78,32 @@ export function SettleUpList({ groupId }: { groupId: string }) {
         return (
           <div
             key={key}
-            className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-2xl border border-slate-600"
+            className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 bg-slate-700/50 rounded-2xl border border-slate-600"
           >
-            <UserAvatar profile={fromProfile} className="h-9 w-9" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-200">
-                <span className="font-medium">
-                  {fromProfile.full_name ?? fromProfile.email}
-                </span>
-              </p>
+            <div className="flex items-center gap-2 min-w-0">
+              <UserAvatar profile={fromProfile} className="h-8 w-8 shrink-0" />
+              <span className="text-sm font-medium text-slate-200 truncate">
+                {fromProfile.full_name ?? fromProfile.email}
+              </span>
+              <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
+              <UserAvatar profile={toProfile} className="h-8 w-8 shrink-0" />
+              <span className="text-sm font-medium text-slate-200 truncate">
+                {toProfile.full_name ?? toProfile.email}
+              </span>
             </div>
-            <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
-            <UserAvatar profile={toProfile} className="h-9 w-9" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-200">
-                <span className="font-medium">
-                  {toProfile.full_name ?? toProfile.email}
-                </span>
-              </p>
+            <div className="flex items-center justify-between sm:justify-end gap-3 sm:ml-auto">
+              <span className="text-sm font-medium tabular-nums text-slate-200">
+                {formatCurrency(debt.amount, currency)}
+              </span>
+              <Button
+                size="sm"
+                onClick={() => handleSettle(debt.from, debt.to, debt.amount)}
+                disabled={settlingId === key}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
+              >
+                {settlingId === key ? '...' : 'Settle'}
+              </Button>
             </div>
-            <span className="text-sm font-medium tabular-nums text-slate-200 shrink-0">
-              {formatCurrency(debt.amount, currency)}
-            </span>
-            <Button
-              size="sm"
-              onClick={() => handleSettle(debt.from, debt.to, debt.amount)}
-              disabled={settlingId === key}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shrink-0"
-            >
-              {settlingId === key ? '...' : 'Settle'}
-            </Button>
           </div>
         )
       })}

@@ -13,12 +13,17 @@ export default function FriendsPage() {
   const pendingIncoming = friends?.filter(
     (f) => f.status === 'pending' && !f.is_requester
   )
-  const accepted = friends?.filter(
-    (f) => f.status === 'accepted' || f.status === 'group_friend'
-  )
+  const accepted = friends?.filter((f) => f.status === 'accepted')
+  const groupOnly = friends?.filter((f) => f.status === 'group_friend')
   const pendingOutgoing = friends?.filter(
     (f) => f.status === 'pending' && f.is_requester
   )
+
+  const hasAnyone =
+    (pendingIncoming?.length ?? 0) +
+    (accepted?.length ?? 0) +
+    (groupOnly?.length ?? 0) +
+    (pendingOutgoing?.length ?? 0) > 0
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -50,8 +55,8 @@ export default function FriendsPage() {
             </div>
           )}
 
-          {/* Friends */}
-          {(accepted?.length ?? 0) > 0 ? (
+          {/* Accepted friends */}
+          {(accepted?.length ?? 0) > 0 && (
             <div>
               <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
                 Your Friends
@@ -68,21 +73,33 @@ export default function FriendsPage() {
                 ))}
               </div>
             </div>
-          ) : (
-            !pendingIncoming?.length && (
-              <EmptyState
-                icon={UserCircle}
-                title="No friends yet"
-                description="Add friends by email or join a group to connect with others."
-              />
-            )
+          )}
+
+          {/* Group contacts — not yet friends */}
+          {(groupOnly?.length ?? 0) > 0 && (
+            <div>
+              <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
+                People from your groups
+              </h2>
+              <div className="space-y-2">
+                {groupOnly?.map((f) => (
+                  <FriendCard
+                    key={f.profile.id}
+                    profile={f.profile}
+                    status={f.status}
+                    friendshipId={f.friendship?.id ?? null}
+                    isRequester={f.is_requester}
+                  />
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Pending outgoing */}
           {(pendingOutgoing?.length ?? 0) > 0 && (
             <div>
               <h2 className="text-[13px] font-medium uppercase tracking-wider text-slate-400 mb-3">
-                Pending Requests
+                Sent Requests
               </h2>
               <div className="space-y-2">
                 {pendingOutgoing?.map((f) => (
@@ -96,6 +113,14 @@ export default function FriendsPage() {
                 ))}
               </div>
             </div>
+          )}
+
+          {!hasAnyone && (
+            <EmptyState
+              icon={UserCircle}
+              title="No friends yet"
+              description="Add friends by email or join a group to connect with others."
+            />
           )}
         </>
       )}

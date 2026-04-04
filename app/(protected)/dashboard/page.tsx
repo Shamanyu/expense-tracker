@@ -4,8 +4,6 @@ import { useUser } from '@/hooks/useUser'
 import { ActivityFeed } from '@/components/activity/ActivityFeed'
 import { formatCurrency } from '@/lib/utils/currency'
 import { PageSkeleton } from '@/components/common/LoadingSkeleton'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
@@ -36,10 +34,14 @@ function useDashboardBalances() {
         .in('group_id', groupIds)
         .is('deleted_at', null)
 
-      // Get all splits
+      // Get splits only for these expenses
+      const expenseIds = (expenses ?? []).map((e) => e.id)
+      if (expenseIds.length === 0) return { youAreOwed: 0, youOwe: 0, perPerson: [] }
+
       const { data: splits } = await supabase
         .from('expense_splits')
         .select('*')
+        .in('expense_id', expenseIds)
 
       // Get all settlements
       const { data: settlements } = await supabase
@@ -199,13 +201,6 @@ export default function DashboardPage() {
         <ActivityFeed limit={10} />
       </div>
 
-      {/* Mobile FAB */}
-      <Link
-        href="/groups"
-        className="md:hidden fixed bottom-20 right-4 z-40 bg-indigo-600 text-white rounded-2xl shadow-lg p-4 hover:bg-indigo-700 transition-colors"
-      >
-        <Plus className="w-6 h-6" />
-      </Link>
     </div>
   )
 }
