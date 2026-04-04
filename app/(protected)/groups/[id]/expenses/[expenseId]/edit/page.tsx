@@ -113,7 +113,7 @@ export default function EditExpensePage({
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <ExpenseForm
           groupId={groupId}
-          defaultCurrency={group?.default_currency ?? 'USD'}
+          defaultCurrency={group?.default_currency ?? 'INR'}
           expense={expense}
           existingSplits={splits}
           onSubmit={handleSubmit as never}

@@ -102,7 +102,7 @@ create table public.profiles (
   email text unique not null,
   full_name text,
   avatar_url text,
-  default_currency text not null default 'USD',
+  default_currency text not null default 'INR',
   created_at timestamptz default now()
 );
 alter table public.profiles enable row level security;
@@ -132,7 +132,7 @@ create table public.groups (
   name text not null,
   description text,
   image_url text,
-  default_currency text not null default 'USD',
+  default_currency text not null default 'INR',
   created_by uuid references public.profiles(id),
   created_at timestamptz default now(),
   archived_at timestamptz
@@ -179,7 +179,7 @@ create table public.expenses (
   group_id uuid references public.groups(id) on delete cascade,
   description text not null,
   amount numeric(12,2) not null,
-  currency text not null default 'USD',
+  currency text not null default 'INR',
   paid_by uuid references public.profiles(id),
   split_type text not null default 'equal',
   category text not null default 'general',
@@ -240,7 +240,7 @@ create table public.settlements (
   payer_id uuid references public.profiles(id),
   payee_id uuid references public.profiles(id),
   amount numeric(12,2) not null,
-  currency text not null default 'USD',
+  currency text not null default 'INR',
   notes text,
   settled_at timestamptz default now(),
   created_by uuid references public.profiles(id)

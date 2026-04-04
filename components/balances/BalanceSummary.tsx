@@ -39,7 +39,7 @@ export function BalanceSummary({ groupId }: { groupId: string }) {
             key={userId}
             profile={profile}
             amount={amount}
-            currency={group?.default_currency ?? 'USD'}
+            currency={group?.default_currency ?? 'INR'}
           />
         )
       })}

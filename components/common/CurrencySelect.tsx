@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/popover'
 
 const CURRENCIES = [
+  { code: 'INR', name: 'Indian Rupee', flag: '\u{1F1EE}\u{1F1F3}' },
   { code: 'USD', name: 'US Dollar', flag: '\u{1F1FA}\u{1F1F8}' },
   { code: 'EUR', name: 'Euro', flag: '\u{1F1EA}\u{1F1FA}' },
   { code: 'GBP', name: 'British Pound', flag: '\u{1F1EC}\u{1F1E7}' },
@@ -27,7 +28,6 @@ const CURRENCIES = [
   { code: 'AUD', name: 'Australian Dollar', flag: '\u{1F1E6}\u{1F1FA}' },
   { code: 'CHF', name: 'Swiss Franc', flag: '\u{1F1E8}\u{1F1ED}' },
   { code: 'CNY', name: 'Chinese Yuan', flag: '\u{1F1E8}\u{1F1F3}' },
-  { code: 'INR', name: 'Indian Rupee', flag: '\u{1F1EE}\u{1F1F3}' },
   { code: 'MXN', name: 'Mexican Peso', flag: '\u{1F1F2}\u{1F1FD}' },
   { code: 'BRL', name: 'Brazilian Real', flag: '\u{1F1E7}\u{1F1F7}' },
   { code: 'SGD', name: 'Singapore Dollar', flag: '\u{1F1F8}\u{1F1EC}' },

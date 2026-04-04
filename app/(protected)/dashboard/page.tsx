@@ -148,7 +148,7 @@ export default function DashboardPage() {
             You are owed
           </p>
           <p className="text-2xl font-semibold text-indigo-600 mt-1 tabular-nums">
-            {formatCurrency(balances?.youAreOwed ?? 0, user?.default_currency ?? 'USD')}
+            {formatCurrency(balances?.youAreOwed ?? 0, user?.default_currency ?? 'INR')}
           </p>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
@@ -156,7 +156,7 @@ export default function DashboardPage() {
             You owe
           </p>
           <p className="text-2xl font-semibold text-red-500 mt-1 tabular-nums">
-            {formatCurrency(balances?.youOwe ?? 0, user?.default_currency ?? 'USD')}
+            {formatCurrency(balances?.youOwe ?? 0, user?.default_currency ?? 'INR')}
           </p>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                 >
                   {formatCurrency(
                     Math.abs(p.amount),
-                    user?.default_currency ?? 'USD'
+                    user?.default_currency ?? 'INR'
                   )}
                 </span>
               </div>

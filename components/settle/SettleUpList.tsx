@@ -27,7 +27,7 @@ export function SettleUpList({ groupId }: { groupId: string }) {
   if (!balanceData) return null
 
   const { simplifiedDebts } = balanceData
-  const currency = group?.default_currency ?? 'USD'
+  const currency = group?.default_currency ?? 'INR'
 
   if (simplifiedDebts.length === 0) {
     return (

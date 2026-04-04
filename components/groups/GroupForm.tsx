@@ -36,7 +36,7 @@ export function GroupForm({
     defaultValues: {
       name: '',
       description: '',
-      default_currency: 'USD',
+      default_currency: 'INR',
       ...defaultValues,
     },
   })
