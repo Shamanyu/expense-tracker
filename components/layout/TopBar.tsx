@@ -16,7 +16,7 @@ export function TopBar() {
   return (
     <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-4 md:px-6">
       <div className="md:hidden">
-        <h1 className="text-lg font-semibold text-slate-800">Splitwise</h1>
+        <h1 className="text-lg font-semibold text-slate-800">Settl</h1>
       </div>
       <div className="hidden md:block" />
       <Avatar className="h-8 w-8">

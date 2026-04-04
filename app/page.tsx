@@ -17,10 +17,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center">
       <div className="text-center px-6">
         <h1 className="text-5xl font-semibold text-white mb-4 tracking-tight">
-          Splitwise
+          Settl
         </h1>
         <p className="text-slate-400 text-lg mb-10">
-          Split expenses effortlessly with friends and groups.
+          Split expenses. Settle up. Stay friends.
         </p>
         <button
           onClick={handleLogin}

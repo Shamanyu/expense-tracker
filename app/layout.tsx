@@ -10,8 +10,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Splitwise Clone',
-  description: 'Split expenses with friends and groups',
+  title: 'Settl',
+  description: 'Split expenses. Settle up. Stay friends.',
 }
 
 export default function RootLayout({

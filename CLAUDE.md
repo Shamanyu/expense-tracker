@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Splitwise Clone
+# Settl
 
 ## Tech Stack
 - **Framework:** Next.js 16 (App Router, TypeScript, Tailwind CSS v4)

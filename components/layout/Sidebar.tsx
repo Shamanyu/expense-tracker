@@ -27,7 +27,7 @@ export function Sidebar() {
     <aside className="hidden md:flex md:w-64 md:flex-col bg-slate-900 min-h-screen">
       <div className="flex items-center h-16 px-6">
         <Link href="/dashboard" className="text-white text-xl font-semibold tracking-tight">
-          Splitwise
+          Settl
         </Link>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">

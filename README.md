@@ -1,4 +1,4 @@
-# Splitwise Clone
+# Settl
 
 A full-featured expense splitting app built with Next.js, Supabase, and Tailwind CSS.
 
