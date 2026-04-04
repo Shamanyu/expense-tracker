@@ -81,14 +81,43 @@ export async function addMember(groupId: string, email: string) {
   const supabase = await createServerClient()
 
   // Look up profile by email
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
     .select('id')
     .eq('email', email)
     .single()
 
-  if (profileError || !profile) {
-    return { error: 'No account found with that email.' }
+  if (!profile) {
+    // User not on Settl yet — create an invitation
+    const { data: existingInvite } = await supabase
+      .from('invitations')
+      .select('id')
+      .eq('email', email)
+      .eq('type', 'group')
+      .eq('group_id', groupId)
+      .eq('status', 'pending')
+      .single()
+
+    if (existingInvite) {
+      return { error: 'This email already has a pending invite to this group.' }
+    }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    const { error } = await supabase
+      .from('invitations')
+      .insert({
+        inviter_id: user.id,
+        email,
+        type: 'group',
+        group_id: groupId,
+        status: 'pending',
+      })
+
+    if (error) return { error: error.message }
+    revalidatePath(`/groups/${groupId}`)
+    return { error: null, invited: true }
   }
 
   // Check if already a member
@@ -113,7 +142,7 @@ export async function addMember(groupId: string, email: string) {
 
   if (error) return { error: error.message }
   revalidatePath(`/groups/${groupId}`)
-  return { error: null }
+  return { error: null, invited: false }
 }
 
 export async function removeMember(groupId: string, memberId: string) {

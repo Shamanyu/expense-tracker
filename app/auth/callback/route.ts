@@ -32,6 +32,12 @@ export async function GET(request: Request) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Process pending invitations for this user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email) {
+        await processPendingInvitations(supabase, user.id, user.email)
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host')
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
@@ -45,4 +51,46 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.redirect(`${new URL(request.url).origin}/auth/auth-code-error`)
+}
+
+async function processPendingInvitations(
+  supabase: ReturnType<typeof createServerClient>,
+  userId: string,
+  email: string
+) {
+  try {
+    const { data: invitations } = await supabase
+      .from('invitations')
+      .select('*')
+      .eq('email', email)
+      .eq('status', 'pending')
+
+    if (!invitations?.length) return
+
+    for (const invite of invitations) {
+      if (invite.type === 'friend') {
+        // Create friendship
+        await supabase.from('friendships').insert({
+          requester_id: invite.inviter_id,
+          addressee_id: userId,
+          status: 'pending',
+        })
+      } else if (invite.type === 'group' && invite.group_id) {
+        // Add to group
+        await supabase.from('group_members').insert({
+          group_id: invite.group_id,
+          user_id: userId,
+          role: 'member',
+        })
+      }
+
+      // Mark invitation as accepted
+      await supabase
+        .from('invitations')
+        .update({ status: 'accepted' })
+        .eq('id', invite.id)
+    }
+  } catch {
+    // Don't block login if invitation processing fails
+  }
 }

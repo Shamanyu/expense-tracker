@@ -23,7 +23,11 @@ export function FriendSearch() {
       if (result?.error) {
         toast.error(result.error)
       } else {
-        toast.success('Friend request sent!')
+        toast.success(
+          result?.invited
+            ? 'Invite sent! They\'ll be added when they join Settl.'
+            : 'Friend request sent!'
+        )
         setEmail('')
         queryClient.invalidateQueries({ queryKey: ['friends'] })
       }

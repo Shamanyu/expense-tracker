@@ -8,19 +8,51 @@ export async function sendFriendRequest(email: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
+  // Can't add yourself
+  const { data: currentProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('id', user.id)
+    .single()
+
+  if (currentProfile?.email === email) {
+    return { error: "You can't send a friend request to yourself." }
+  }
+
   // Look up profile by email
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
     .select('id')
     .eq('email', email)
     .single()
 
-  if (profileError || !profile) {
-    return { error: 'No account found with that email.' }
-  }
+  if (!profile) {
+    // User not on Settl yet — create an invitation
+    const { data: existingInvite } = await supabase
+      .from('invitations')
+      .select('id')
+      .eq('inviter_id', user.id)
+      .eq('email', email)
+      .eq('type', 'friend')
+      .eq('status', 'pending')
+      .single()
 
-  if (profile.id === user.id) {
-    return { error: "You can't send a friend request to yourself." }
+    if (existingInvite) {
+      return { error: 'You already have a pending invite for this email.' }
+    }
+
+    const { error } = await supabase
+      .from('invitations')
+      .insert({
+        inviter_id: user.id,
+        email,
+        type: 'friend',
+        status: 'pending',
+      })
+
+    if (error) return { error: error.message }
+    revalidatePath('/friends')
+    return { error: null, invited: true }
   }
 
   // Check existing friendship
@@ -46,7 +78,7 @@ export async function sendFriendRequest(email: string) {
 
   if (error) return { error: error.message }
   revalidatePath('/friends')
-  return { error: null }
+  return { error: null, invited: false }
 }
 
 export async function acceptFriendRequest(friendshipId: string) {

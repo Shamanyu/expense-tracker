@@ -70,3 +70,13 @@ export type Friendship = {
   status: 'pending' | 'accepted'
   created_at: string
 }
+
+export type Invitation = {
+  id: string
+  inviter_id: string
+  email: string
+  type: 'friend' | 'group'
+  group_id: string | null
+  status: 'pending' | 'accepted'
+  created_at: string
+}

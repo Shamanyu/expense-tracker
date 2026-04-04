@@ -23,7 +23,11 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
       if (result?.error) {
         toast.error(result.error)
       } else {
-        toast.success('Member added successfully!')
+        toast.success(
+          result?.invited
+            ? 'Invite sent! They\'ll be added when they join Settl.'
+            : 'Member added successfully!'
+        )
         setEmail('')
         queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
       }
