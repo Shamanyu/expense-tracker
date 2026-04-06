@@ -16,9 +16,11 @@ import {
 import { Plus, Users, Archive } from 'lucide-react'
 import { toast } from 'sonner'
 import { createBrowserClient } from '@/lib/supabase/client'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { computeNetBalances } from '@/lib/utils/balances'
+import { cn } from '@/lib/utils'
 import { useCreateGroup, addMembersToGroup } from '@/hooks/useCreateGroup'
+import { archiveGroup, unarchiveGroup } from '@/app/actions/groups'
 
 type GroupListItem = {
   group: {
@@ -139,6 +141,27 @@ export default function GroupsPage() {
   const [open, setOpen] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const createGroupMutation = useCreateGroup()
+  const queryClient = useQueryClient()
+
+  const handleArchive = async (groupId: string) => {
+    const result = await archiveGroup(groupId)
+    if (result?.error) {
+      toast.error(result.error)
+    } else {
+      toast.success('Group archived')
+      queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+    }
+  }
+
+  const handleUnarchive = async (groupId: string) => {
+    const result = await unarchiveGroup(groupId)
+    if (result?.error) {
+      toast.error(result.error)
+    } else {
+      toast.success('Group unarchived')
+      queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+    }
+  }
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -208,17 +231,18 @@ export default function GroupsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-[22px] font-semibold text-slate-100">Groups</h1>
         <div className="flex gap-2">
-          {archivedGroups.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowArchived(!showArchived)}
-              className="rounded-xl border-slate-700 text-slate-300 hover:bg-slate-800"
-            >
-              <Archive className="w-4 h-4 mr-1" />
-              {showArchived ? 'Hide archived' : `Archived (${archivedGroups.length})`}
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowArchived(!showArchived)}
+            className={cn(
+              "rounded-xl border-slate-700 hover:bg-slate-800",
+              showArchived ? "text-indigo-400 border-indigo-500/50" : "text-slate-300"
+            )}
+          >
+            <Archive className="w-4 h-4 mr-1" />
+            {showArchived ? 'Hide archived' : `Archived${archivedGroups.length > 0 ? ` (${archivedGroups.length})` : ''}`}
+          </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
               render={
@@ -276,6 +300,8 @@ export default function GroupsPage() {
               memberCount={item.memberCount}
               yourBalance={item.yourBalance}
               archived={isArchived(item)}
+              onArchive={handleArchive}
+              onUnarchive={handleUnarchive}
             />
           ))}
         </div>
