@@ -172,6 +172,9 @@ create policy "Admins delete members" on public.group_members for delete
       and gm2.user_id = auth.uid()
       and gm2.role = 'admin'
   ));
+create policy "Users update own membership" on public.group_members for update
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
 
 -- EXPENSES
 create table public.expenses (
