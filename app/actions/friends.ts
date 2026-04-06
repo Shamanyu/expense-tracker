@@ -114,6 +114,46 @@ export async function acceptFriendRequest(friendshipId: string) {
   return { error: null }
 }
 
+export async function resendFriendRequest(friendshipId: string) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  // Get the friendship
+  const { data: friendship } = await supabase
+    .from('friendships')
+    .select('id, requester_id, addressee_id, status')
+    .eq('id', friendshipId)
+    .single()
+
+  if (!friendship) return { error: 'Friend request not found' }
+  if (friendship.status !== 'pending') return { error: 'This request has already been accepted' }
+  if (friendship.requester_id !== user.id) return { error: 'You can only resend your own requests' }
+
+  // Get both profiles for the email
+  const { data: requesterProfile } = await supabase
+    .from('profiles')
+    .select('full_name, email')
+    .eq('id', user.id)
+    .single()
+
+  const { data: addresseeProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('id', friendship.addressee_id)
+    .single()
+
+  if (!addresseeProfile?.email) return { error: 'Could not find recipient email' }
+
+  const requesterName = requesterProfile?.full_name ?? requesterProfile?.email ?? 'Someone'
+  await sendFriendRequestEmail({
+    to: addresseeProfile.email,
+    requesterName,
+  }).catch(() => {})
+
+  return { error: null }
+}
+
 export async function declineFriendRequest(friendshipId: string) {
   const supabase = await createServerClient()
 

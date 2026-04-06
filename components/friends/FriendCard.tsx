@@ -8,13 +8,14 @@ import {
   acceptFriendRequest,
   declineFriendRequest,
   sendFriendRequest,
+  resendFriendRequest,
 } from '@/app/actions/friends'
 import { getOrCreateDirectGroup } from '@/app/actions/direct-expense'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { UserPlus, Plus, Check } from 'lucide-react'
+import { UserPlus, Plus, Check, Send } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils/currency'
 import { cn } from '@/lib/utils'
 
@@ -95,6 +96,23 @@ export function FriendCard({
     }
   }
 
+  const handleResend = async () => {
+    if (!friendshipId) return
+    setIsLoading(true)
+    try {
+      const result = await resendFriendRequest(friendshipId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Friend request resent!')
+      }
+    } catch {
+      toast.error('Failed to resend request')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleAddExpense = async () => {
     setIsLoading(true)
     try {
@@ -144,9 +162,21 @@ export function FriendCard({
         </Button>
       )}
       {status === 'pending' && isRequester && (
-        <Badge variant="secondary" className="text-xs bg-amber-900/50 text-amber-400">
-          Pending
-        </Badge>
+        <div className="flex items-center gap-1.5">
+          <Badge variant="secondary" className="text-xs bg-amber-900/50 text-amber-400">
+            Pending
+          </Badge>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleResend}
+            disabled={isLoading}
+            className="rounded-xl text-xs border-slate-700 text-slate-300 hover:bg-slate-700"
+          >
+            <Send className="w-3.5 h-3.5 mr-1" />
+            Resend
+          </Button>
+        </div>
       )}
       {status === 'group_friend' && !requestSent && (
         <div className="flex gap-1.5">
