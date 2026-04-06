@@ -15,7 +15,7 @@ const serwist = new Serwist({
   precacheEntries: sw.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
-  navigationPreload: true,
+  navigationPreload: false, // iOS Safari doesn't support this
   runtimeCaching: defaultCache,
   fallbacks: {
     entries: [
