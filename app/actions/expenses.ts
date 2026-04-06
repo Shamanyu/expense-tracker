@@ -53,18 +53,21 @@ export async function createExpense(formData: {
 
   if (splitError) return { error: splitError.message, data: null }
 
-  // Notify group members for large expenses (fire and forget)
+  // Notify group members for large expenses — must await so Vercel doesn't kill the function
   const large = isLargeExpense(formData.amount, formData.currency)
-  console.log(`[expense-notify] amount=${formData.amount} currency=${formData.currency} isLarge=${large}`)
   if (large) {
-    notifyGroupMembersOfExpense(supabase, {
-      creatorId: user.id,
-      groupId: formData.group_id,
-      description: formData.description,
-      amount: formData.amount,
-      currency: formData.currency,
-      splits: formData.splits,
-    }).catch((err) => console.error('[expense-notify] failed:', err))
+    try {
+      await notifyGroupMembersOfExpense(supabase, {
+        creatorId: user.id,
+        groupId: formData.group_id,
+        description: formData.description,
+        amount: formData.amount,
+        currency: formData.currency,
+        splits: formData.splits,
+      })
+    } catch (err) {
+      console.error('[expense-notify] failed:', err)
+    }
   }
 
   revalidatePath(`/groups/${formData.group_id}`)
@@ -120,16 +123,19 @@ async function notifyGroupMembersOfExpense(
     const share = splitMap.get(profile.id)
     const yourShare = share ? formatCurrency(share, opts.currency) : undefined
 
-    console.log(`[expense-notify] sending to ${profile.email}, share=${yourShare}`)
-    sendExpenseNotificationEmail({
-      to: profile.email,
-      adderName,
-      description: opts.description,
-      amount: formattedAmount,
-      currency: opts.currency,
-      groupName,
-      yourShare,
-    }).catch((err) => console.error(`[expense-notify] email to ${profile.email} failed:`, err))
+    try {
+      await sendExpenseNotificationEmail({
+        to: profile.email,
+        adderName,
+        description: opts.description,
+        amount: formattedAmount,
+        currency: opts.currency,
+        groupName,
+        yourShare,
+      })
+    } catch (err) {
+      console.error(`[expense-notify] email to ${profile.email} failed:`, err)
+    }
   }
 }
 

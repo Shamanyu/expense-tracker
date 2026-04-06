@@ -51,9 +51,9 @@ export async function sendFriendRequest(email: string) {
       if (error) return { error: error.message }
     }
 
-    // Send invite email (fire and forget) — resend even if invite already exists
+    // Send invite email — await so Vercel doesn't tear down before it completes
     const inviterName = currentProfile?.full_name ?? currentProfile?.email ?? 'Someone'
-    sendInviteEmail({ to: email, inviterName, type: 'friend' }).catch(() => {})
+    await sendInviteEmail({ to: email, inviterName, type: 'friend' }).catch((err) => console.error('[friend-invite] email failed:', err))
 
     revalidatePath('/friends')
     return { error: null, invited: true }
@@ -91,10 +91,10 @@ export async function sendFriendRequest(email: string) {
 
   if (addresseeProfile?.email) {
     const requesterName = currentProfile?.full_name ?? currentProfile?.email ?? 'Someone'
-    sendFriendRequestEmail({
+    await sendFriendRequestEmail({
       to: addresseeProfile.email,
       requesterName,
-    }).catch(() => {})
+    }).catch((err) => console.error('[friend-request] email failed:', err))
   }
 
   revalidatePath('/friends')
