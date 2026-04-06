@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase/server'
-import { sendInviteEmail } from '@/lib/email'
+import { sendInviteEmail, sendFriendRequestEmail } from '@/lib/email'
 
 export async function sendFriendRequest(email: string) {
   const supabase = await createServerClient()
@@ -81,6 +81,22 @@ export async function sendFriendRequest(email: string) {
     })
 
   if (error) return { error: error.message }
+
+  // Notify the addressee via email
+  const { data: addresseeProfile } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('id', profile.id)
+    .single()
+
+  if (addresseeProfile?.email) {
+    const requesterName = currentProfile?.full_name ?? currentProfile?.email ?? 'Someone'
+    sendFriendRequestEmail({
+      to: addresseeProfile.email,
+      requesterName,
+    }).catch(() => {})
+  }
+
   revalidatePath('/friends')
   return { error: null, invited: false }
 }

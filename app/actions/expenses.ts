@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase/server'
+import { isLargeExpense, sendExpenseNotificationEmail } from '@/lib/email'
+import { formatCurrency } from '@/lib/utils/currency'
 
 export async function createExpense(formData: {
   group_id: string
@@ -51,8 +53,80 @@ export async function createExpense(formData: {
 
   if (splitError) return { error: splitError.message, data: null }
 
+  // Notify group members for large expenses (fire and forget)
+  if (isLargeExpense(formData.amount, formData.currency)) {
+    notifyGroupMembersOfExpense(supabase, {
+      creatorId: user.id,
+      groupId: formData.group_id,
+      description: formData.description,
+      amount: formData.amount,
+      currency: formData.currency,
+      splits: formData.splits,
+    }).catch(() => {})
+  }
+
   revalidatePath(`/groups/${formData.group_id}`)
   return { error: null, data: expense }
+}
+
+async function notifyGroupMembersOfExpense(
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  opts: {
+    creatorId: string
+    groupId: string
+    description: string
+    amount: number
+    currency: string
+    splits: { user_id: string; amount: number }[]
+  }
+) {
+  const { data: group } = await supabase
+    .from('groups')
+    .select('name')
+    .eq('id', opts.groupId)
+    .single()
+
+  const { data: creatorProfile } = await supabase
+    .from('profiles')
+    .select('full_name, email')
+    .eq('id', opts.creatorId)
+    .single()
+
+  const adderName = creatorProfile?.full_name ?? creatorProfile?.email ?? 'Someone'
+  const groupName = group?.name ?? 'a group'
+  const formattedAmount = formatCurrency(opts.amount, opts.currency)
+
+  // Get all group members except the creator
+  const { data: members } = await supabase
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', opts.groupId)
+    .neq('user_id', opts.creatorId)
+
+  const memberIds = (members ?? []).map((m) => m.user_id)
+  if (memberIds.length === 0) return
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, email')
+    .in('id', memberIds)
+
+  const splitMap = new Map(opts.splits.map((s) => [s.user_id, s.amount]))
+
+  for (const profile of profiles ?? []) {
+    const share = splitMap.get(profile.id)
+    const yourShare = share ? formatCurrency(share, opts.currency) : undefined
+
+    sendExpenseNotificationEmail({
+      to: profile.email,
+      adderName,
+      description: opts.description,
+      amount: formattedAmount,
+      currency: opts.currency,
+      groupName,
+      yourShare,
+    }).catch(() => {})
+  }
 }
 
 export async function updateExpense(
