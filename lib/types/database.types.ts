@@ -24,6 +24,7 @@ export type GroupMember = {
   user_id: string
   role: 'admin' | 'member'
   joined_at: string
+  archived_at: string | null
 }
 
 export type Expense = {

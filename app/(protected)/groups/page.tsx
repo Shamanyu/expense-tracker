@@ -13,30 +13,51 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Users, Eye, EyeOff, Archive } from 'lucide-react'
+import { Plus, Users, Archive } from 'lucide-react'
 import { toast } from 'sonner'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { computeNetBalances } from '@/lib/utils/balances'
 import { useCreateGroup, addMembersToGroup } from '@/hooks/useCreateGroup'
 
+type GroupListItem = {
+  group: {
+    id: string
+    name: string
+    description: string | null
+    default_currency: string
+    created_at: string
+    archived_at: string | null
+    [key: string]: unknown
+  }
+  memberCount: number
+  yourBalance: number
+  lastActivity: string // ISO date of most recent expense/settlement
+  userArchived: boolean // whether this user manually archived it
+}
+
 function useMyGroups() {
   const supabase = createBrowserClient()
 
   return useQuery({
     queryKey: ['my-groups-with-balances'],
-    queryFn: async () => {
+    queryFn: async (): Promise<GroupListItem[]> => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return []
 
-      // Get groups the user is a member of
+      // Get groups the user is a member of (including per-user archived_at)
       const { data: memberships } = await supabase
         .from('group_members')
-        .select('group_id')
+        .select('group_id, archived_at')
         .eq('user_id', user.id)
 
       const groupIds = (memberships ?? []).map((m) => m.group_id)
       if (groupIds.length === 0) return []
+
+      const userArchivedMap: Record<string, string | null> = {}
+      for (const m of memberships ?? []) {
+        userArchivedMap[m.group_id] = m.archived_at ?? null
+      }
 
       // Get group details
       const { data: groups } = await supabase
@@ -58,7 +79,7 @@ function useMyGroups() {
         memberCounts[m.group_id] = (memberCounts[m.group_id] ?? 0) + 1
       }
 
-      // Get expenses and splits for balance computation
+      // Get expenses and splits for balance computation + last activity
       const { data: expenses } = await supabase
         .from('expenses')
         .select('*')
@@ -78,11 +99,11 @@ function useMyGroups() {
         .select('*')
         .in('group_id', groupIds)
 
-      // Compute per-group balance for current user
+      // Compute per-group balance and last activity
       return groups.map((g) => {
         const groupExpenses = (expenses ?? []).filter((e) => e.group_id === g.id)
-        const expenseIds = new Set(groupExpenses.map((e) => e.id))
-        const groupSplits = (splits ?? []).filter((s) => expenseIds.has(s.expense_id))
+        const groupExpenseIds = new Set(groupExpenses.map((e) => e.id))
+        const groupSplits = (splits ?? []).filter((s) => groupExpenseIds.has(s.expense_id))
         const groupSettlements = (settlements ?? []).filter((s) => s.group_id === g.id)
 
         const expensesWithSplits = groupExpenses.map((e) => ({
@@ -93,10 +114,20 @@ function useMyGroups() {
         const netBalances = computeNetBalances(expensesWithSplits, groupSettlements)
         const yourBalance = netBalances[user.id] ?? 0
 
+        // Last activity = most recent expense or settlement date
+        const dates: string[] = [
+          g.created_at,
+          ...groupExpenses.map((e) => e.created_at),
+          ...groupSettlements.map((s) => s.settled_at),
+        ]
+        const lastActivity = dates.sort().reverse()[0] ?? g.created_at
+
         return {
           group: g,
           memberCount: memberCounts[g.id] ?? 0,
           yourBalance: Math.round(yourBalance * 100) / 100,
+          lastActivity,
+          userArchived: !!userArchivedMap[g.id],
         }
       })
     },
@@ -106,7 +137,6 @@ function useMyGroups() {
 export default function GroupsPage() {
   const { data: allGroups, isLoading } = useMyGroups()
   const [open, setOpen] = useState(false)
-  const [showSettled, setShowSettled] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const createGroupMutation = useCreateGroup()
 
@@ -118,28 +148,26 @@ export default function GroupsPage() {
     (g) => !g.group.name.startsWith('Direct:')
   )
 
-  // Archived groups resurface if they have a non-zero balance
-  const archivedGroups = regularGroups.filter(
-    (g) => g.group.archived_at && Math.abs(g.yourBalance) <= 0.01
-  )
-  const nonArchivedGroups = regularGroups.filter(
-    (g) => !g.group.archived_at || Math.abs(g.yourBalance) > 0.01
-  )
-
-  const activeGroups = nonArchivedGroups.filter((g) => {
-    // Show group if it has a non-zero balance
-    if (Math.abs(g.yourBalance) > 0.01) return true
-    // Show settled groups that are less than 30 days old
-    if (new Date(g.group.created_at) > thirtyDaysAgo) return true
+  // A group is "archived" if:
+  //  1) The user manually archived it, OR
+  //  2) No activity in 30 days AND balance is zero (auto-archived)
+  // BUT: any group with a non-zero balance always shows as active (resurfaces)
+  const isArchived = (g: GroupListItem) => {
+    // Non-zero balance → always active, even if manually archived
+    if (Math.abs(g.yourBalance) > 0.01) return false
+    // User explicitly archived it
+    if (g.userArchived) return true
+    // Auto-archive: no activity in 30 days and settled
+    if (new Date(g.lastActivity) <= thirtyDaysAgo) return true
     return false
-  })
-  const settledGroups = nonArchivedGroups.filter(
-    (g) => Math.abs(g.yourBalance) <= 0.01 && new Date(g.group.created_at) <= thirtyDaysAgo
-  )
-  const displayedGroups = [
-    ...(showSettled ? nonArchivedGroups : activeGroups),
-    ...(showArchived ? archivedGroups : []),
-  ]
+  }
+
+  const activeGroups = regularGroups.filter((g) => !isArchived(g))
+  const archivedGroups = regularGroups.filter((g) => isArchived(g))
+
+  const displayedGroups = showArchived
+    ? regularGroups
+    : activeGroups
 
   const handleCreateGroup = (data: {
     name: string
@@ -180,17 +208,6 @@ export default function GroupsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-[22px] font-semibold text-slate-100">Groups</h1>
         <div className="flex gap-2">
-          {settledGroups.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSettled(!showSettled)}
-              className="rounded-xl border-slate-700 text-slate-300 hover:bg-slate-800"
-            >
-              {showSettled ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-              {showSettled ? 'Hide settled' : `Show settled (${settledGroups.length})`}
-            </Button>
-          )}
           {archivedGroups.length > 0 && (
             <Button
               variant="outline"
@@ -246,16 +263,19 @@ export default function GroupsPage() {
         <EmptyState
           icon={Users}
           title="All groups settled!"
-          description="All your groups have zero balance. Click 'Show settled' to see them."
+          description={archivedGroups.length > 0
+            ? `You have ${archivedGroups.length} archived group${archivedGroups.length > 1 ? 's' : ''}. Click 'Archived' to view them.`
+            : 'All your groups have zero balance.'}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {displayedGroups.map(({ group, memberCount, yourBalance }) => (
+          {displayedGroups.map((item) => (
             <GroupCard
-              key={group.id}
-              group={group}
-              memberCount={memberCount}
-              yourBalance={yourBalance}
+              key={item.group.id}
+              group={item.group}
+              memberCount={item.memberCount}
+              yourBalance={item.yourBalance}
+              archived={isArchived(item)}
             />
           ))}
         </div>

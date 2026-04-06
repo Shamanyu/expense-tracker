@@ -65,13 +65,34 @@ export async function updateGroup(
   return { error: null }
 }
 
+/** Archive a group for the current user only (per-user, not group-wide) */
 export async function archiveGroup(groupId: string) {
   const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
 
   const { error } = await supabase
-    .from('groups')
+    .from('group_members')
     .update({ archived_at: new Date().toISOString() })
-    .eq('id', groupId)
+    .eq('group_id', groupId)
+    .eq('user_id', user.id)
+
+  if (error) return { error: error.message }
+  revalidatePath('/groups')
+  return { error: null }
+}
+
+/** Unarchive a group for the current user */
+export async function unarchiveGroup(groupId: string) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const { error } = await supabase
+    .from('group_members')
+    .update({ archived_at: null })
+    .eq('group_id', groupId)
+    .eq('user_id', user.id)
 
   if (error) return { error: error.message }
   revalidatePath('/groups')

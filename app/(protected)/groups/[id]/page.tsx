@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, HandCoins, Archive } from 'lucide-react'
 import Link from 'next/link'
-import { removeMember, archiveGroup } from '@/app/actions/groups'
+import { removeMember, archiveGroup, unarchiveGroup } from '@/app/actions/groups'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useBalances } from '@/hooks/useBalances'
@@ -49,7 +49,7 @@ export default function GroupDetailPage({
   )
 
   const isSettled = membersWithBalance.size === 0
-  const isArchived = !!group?.archived_at
+  const isArchived = !!currentMember?.archived_at
 
   const handleArchive = async () => {
     setArchiving(true)
@@ -58,12 +58,30 @@ export default function GroupDetailPage({
       if (result?.error) {
         toast.error(result.error)
       } else {
-        toast.success('Group archived')
+        toast.success('Group archived for you')
         queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
         router.push('/groups')
       }
     } catch {
       toast.error('Failed to archive group')
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  const handleUnarchive = async () => {
+    setArchiving(true)
+    try {
+      const result = await unarchiveGroup(groupId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Group unarchived')
+        queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+        queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
+      }
+    } catch {
+      toast.error('Failed to unarchive group')
     } finally {
       setArchiving(false)
     }
@@ -111,7 +129,17 @@ export default function GroupDetailPage({
           </div>
         </div>
         <div className="flex gap-2">
-          {isAdmin && isSettled && !isArchived && (
+          {isArchived ? (
+            <Button
+              variant="outline"
+              onClick={handleUnarchive}
+              disabled={archiving}
+              className="rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800"
+            >
+              <Archive className="w-4 h-4 mr-1" />
+              {archiving ? 'Unarchiving...' : 'Unarchive'}
+            </Button>
+          ) : (
             <Button
               variant="outline"
               onClick={handleArchive}
