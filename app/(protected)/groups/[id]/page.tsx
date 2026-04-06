@@ -12,12 +12,14 @@ import { UserAvatar } from '@/components/common/UserAvatar'
 import { PageSkeleton } from '@/components/common/LoadingSkeleton'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, HandCoins } from 'lucide-react'
+import { Plus, HandCoins, Archive } from 'lucide-react'
 import Link from 'next/link'
-import { removeMember } from '@/app/actions/groups'
+import { removeMember, archiveGroup } from '@/app/actions/groups'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useBalances } from '@/hooks/useBalances'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function GroupDetailPage({
   params,
@@ -30,6 +32,8 @@ export default function GroupDetailPage({
   const { data: user } = useUser()
   const queryClient = useQueryClient()
   const { data: balanceData } = useBalances(groupId)
+  const [archiving, setArchiving] = useState(false)
+  const router = useRouter()
 
   if (groupLoading || membersLoading) return <PageSkeleton />
   if (!group) return <div className="text-center py-12 text-slate-400">Group not found</div>
@@ -43,6 +47,27 @@ export default function GroupDetailPage({
       .filter(([, bal]) => Math.abs(bal) > 0.01)
       .map(([id]) => id)
   )
+
+  const isSettled = membersWithBalance.size === 0
+  const isArchived = !!group?.archived_at
+
+  const handleArchive = async () => {
+    setArchiving(true)
+    try {
+      const result = await archiveGroup(groupId)
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Group archived')
+        queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+        router.push('/groups')
+      }
+    } catch {
+      toast.error('Failed to archive group')
+    } finally {
+      setArchiving(false)
+    }
+  }
 
   const handleRemoveMember = async (userId: string) => {
     try {
@@ -85,15 +110,28 @@ export default function GroupDetailPage({
             )}
           </div>
         </div>
-        <Link href={`/settle/${groupId}`}>
-          <Button
-            variant="outline"
-            className="rounded-xl border-slate-700 text-slate-200 hover:bg-slate-800"
-          >
-            <HandCoins className="w-4 h-4 mr-1" />
-            Settle Up
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          {isAdmin && isSettled && !isArchived && (
+            <Button
+              variant="outline"
+              onClick={handleArchive}
+              disabled={archiving}
+              className="rounded-xl border-slate-700 text-slate-400 hover:bg-slate-800"
+            >
+              <Archive className="w-4 h-4 mr-1" />
+              {archiving ? 'Archiving...' : 'Archive'}
+            </Button>
+          )}
+          <Link href={`/settle/${groupId}`}>
+            <Button
+              variant="outline"
+              className="rounded-xl border-slate-700 text-slate-200 hover:bg-slate-800"
+            >
+              <HandCoins className="w-4 h-4 mr-1" />
+              Settle Up
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Balance summary */}

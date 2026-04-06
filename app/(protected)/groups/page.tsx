@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Users, Eye, EyeOff } from 'lucide-react'
+import { Plus, Users, Eye, EyeOff, Archive } from 'lucide-react'
 import { toast } from 'sonner'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
@@ -107,6 +107,7 @@ export default function GroupsPage() {
   const { data: allGroups, isLoading } = useMyGroups()
   const [open, setOpen] = useState(false)
   const [showSettled, setShowSettled] = useState(false)
+  const [showArchived, setShowArchived] = useState(false)
   const createGroupMutation = useCreateGroup()
 
   const thirtyDaysAgo = new Date()
@@ -117,17 +118,28 @@ export default function GroupsPage() {
     (g) => !g.group.name.startsWith('Direct:')
   )
 
-  const activeGroups = regularGroups.filter((g) => {
+  // Archived groups resurface if they have a non-zero balance
+  const archivedGroups = regularGroups.filter(
+    (g) => g.group.archived_at && Math.abs(g.yourBalance) <= 0.01
+  )
+  const nonArchivedGroups = regularGroups.filter(
+    (g) => !g.group.archived_at || Math.abs(g.yourBalance) > 0.01
+  )
+
+  const activeGroups = nonArchivedGroups.filter((g) => {
     // Show group if it has a non-zero balance
     if (Math.abs(g.yourBalance) > 0.01) return true
     // Show settled groups that are less than 30 days old
     if (new Date(g.group.created_at) > thirtyDaysAgo) return true
     return false
   })
-  const settledGroups = regularGroups.filter(
+  const settledGroups = nonArchivedGroups.filter(
     (g) => Math.abs(g.yourBalance) <= 0.01 && new Date(g.group.created_at) <= thirtyDaysAgo
   )
-  const displayedGroups = showSettled ? regularGroups : activeGroups
+  const displayedGroups = [
+    ...(showSettled ? nonArchivedGroups : activeGroups),
+    ...(showArchived ? archivedGroups : []),
+  ]
 
   const handleCreateGroup = (data: {
     name: string
@@ -177,6 +189,17 @@ export default function GroupsPage() {
             >
               {showSettled ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
               {showSettled ? 'Hide settled' : `Show settled (${settledGroups.length})`}
+            </Button>
+          )}
+          {archivedGroups.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowArchived(!showArchived)}
+              className="rounded-xl border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              <Archive className="w-4 h-4 mr-1" />
+              {showArchived ? 'Hide archived' : `Archived (${archivedGroups.length})`}
             </Button>
           )}
           <Dialog open={open} onOpenChange={setOpen}>
