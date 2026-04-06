@@ -11,6 +11,7 @@ import {
   resendFriendRequest,
 } from '@/app/actions/friends'
 import { getOrCreateDirectGroup } from '@/app/actions/direct-expense'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useState } from 'react'
@@ -46,7 +47,7 @@ export function FriendCard({
     if (!friendshipId) return
     setIsLoading(true)
     try {
-      const result = await acceptFriendRequest(friendshipId)
+      const result = await callServerAction(() => acceptFriendRequest(friendshipId))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -54,7 +55,7 @@ export function FriendCard({
         queryClient.invalidateQueries({ queryKey: ['friends'] })
       }
     } catch {
-      toast.error('Failed to accept request')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }
@@ -64,7 +65,7 @@ export function FriendCard({
     if (!friendshipId) return
     setIsLoading(true)
     try {
-      const result = await declineFriendRequest(friendshipId)
+      const result = await callServerAction(() => declineFriendRequest(friendshipId))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -72,7 +73,7 @@ export function FriendCard({
         queryClient.invalidateQueries({ queryKey: ['friends'] })
       }
     } catch {
-      toast.error('Failed to decline request')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }
@@ -81,7 +82,7 @@ export function FriendCard({
   const handleAddFriend = async () => {
     setIsLoading(true)
     try {
-      const result = await sendFriendRequest(profile.email)
+      const result = await callServerAction(() => sendFriendRequest(profile.email))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -90,7 +91,7 @@ export function FriendCard({
         queryClient.invalidateQueries({ queryKey: ['friends'] })
       }
     } catch {
-      toast.error('Failed to send friend request')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }
@@ -100,14 +101,14 @@ export function FriendCard({
     if (!friendshipId) return
     setIsLoading(true)
     try {
-      const result = await resendFriendRequest(friendshipId)
+      const result = await callServerAction(() => resendFriendRequest(friendshipId))
       if (result?.error) {
         toast.error(result.error)
       } else {
         toast.success('Friend request resent!')
       }
     } catch {
-      toast.error('Failed to resend request')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }
@@ -116,14 +117,14 @@ export function FriendCard({
   const handleAddExpense = async () => {
     setIsLoading(true)
     try {
-      const result = await getOrCreateDirectGroup(profile.id)
+      const result = await callServerAction(() => getOrCreateDirectGroup(profile.id))
       if (result?.error) {
         toast.error(result.error)
       } else if (result?.groupId) {
         router.push(`/groups/${result.groupId}/expenses/new`)
       }
     } catch {
-      toast.error('Failed to create expense')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }

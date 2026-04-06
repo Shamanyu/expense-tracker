@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { CurrencySelect } from '@/components/common/CurrencySelect'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { updateProfile, deleteAccount } from '@/app/actions/account'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -46,7 +47,7 @@ export default function AccountPage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      const result = await updateProfile({ full_name: fullName, default_currency: currency })
+      const result = await callServerAction(() => updateProfile({ full_name: fullName, default_currency: currency }))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -54,7 +55,7 @@ export default function AccountPage() {
         queryClient.invalidateQueries({ queryKey: ['user'] })
       }
     } catch {
-      toast.error('Failed to update profile')
+      toast.error('Network error — try again when online')
     } finally {
       setIsSaving(false)
     }
@@ -68,14 +69,14 @@ export default function AccountPage() {
 
   const handleDeleteAccount = async () => {
     try {
-      const result = await deleteAccount()
+      const result = await callServerAction(() => deleteAccount())
       if (result?.error) {
         toast.error(result.error)
       } else {
         router.push('/')
       }
     } catch {
-      toast.error('Failed to delete account')
+      toast.error('Network error — try again when online')
     }
   }
 

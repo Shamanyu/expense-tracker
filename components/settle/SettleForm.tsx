@@ -15,6 +15,7 @@ import {
 import { CurrencySelect } from '@/components/common/CurrencySelect'
 import { useGroupMembers } from '@/hooks/useGroupMembers'
 import { recordSettlement } from '@/app/actions/settlements'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -40,14 +41,14 @@ export function SettleForm({
 
     setIsLoading(true)
     try {
-      const result = await recordSettlement({
+      const result = await callServerAction(() => recordSettlement({
         group_id: groupId,
         payer_id: payerId,
         payee_id: payeeId,
         amount: parseFloat(amount),
         currency,
         notes: notes || undefined,
-      })
+      }))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -62,7 +63,7 @@ export function SettleForm({
         setNotes('')
       }
     } catch {
-      toast.error('Failed to record payment')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }

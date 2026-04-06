@@ -17,6 +17,7 @@ import { useFriends } from '@/hooks/useFriends'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { getOrCreateDirectGroup } from '@/app/actions/direct-expense'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { toast } from 'sonner'
 
 function useMyGroupsList() {
@@ -78,7 +79,7 @@ export function QuickAddExpense() {
   const handleFriendClick = async (friendId: string) => {
     setIsLoading(true)
     try {
-      const result = await getOrCreateDirectGroup(friendId)
+      const result = await callServerAction(() => getOrCreateDirectGroup(friendId))
       if (result?.error) {
         toast.error(result.error)
       } else if (result?.groupId) {
@@ -87,7 +88,7 @@ export function QuickAddExpense() {
         router.push(`/groups/${result.groupId}/expenses/new`)
       }
     } catch {
-      toast.error('Failed to create expense')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }

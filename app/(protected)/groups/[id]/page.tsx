@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, HandCoins, Archive } from 'lucide-react'
 import Link from 'next/link'
 import { removeMember, archiveGroup, unarchiveGroup } from '@/app/actions/groups'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useBalances } from '@/hooks/useBalances'
@@ -54,7 +55,7 @@ export default function GroupDetailPage({
   const handleArchive = async () => {
     setArchiving(true)
     try {
-      const result = await archiveGroup(groupId)
+      const result = await callServerAction(() => archiveGroup(groupId))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -63,7 +64,7 @@ export default function GroupDetailPage({
         router.push('/groups')
       }
     } catch {
-      toast.error('Failed to archive group')
+      toast.error('Network error — try again when online')
     } finally {
       setArchiving(false)
     }
@@ -72,7 +73,7 @@ export default function GroupDetailPage({
   const handleUnarchive = async () => {
     setArchiving(true)
     try {
-      const result = await unarchiveGroup(groupId)
+      const result = await callServerAction(() => unarchiveGroup(groupId))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -81,7 +82,7 @@ export default function GroupDetailPage({
         queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
       }
     } catch {
-      toast.error('Failed to unarchive group')
+      toast.error('Network error — try again when online')
     } finally {
       setArchiving(false)
     }
@@ -89,7 +90,7 @@ export default function GroupDetailPage({
 
   const handleRemoveMember = async (userId: string) => {
     try {
-      const result = await removeMember(groupId, userId)
+      const result = await callServerAction(() => removeMember(groupId, userId))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -97,7 +98,7 @@ export default function GroupDetailPage({
         queryClient.invalidateQueries({ queryKey: ['group-members', groupId] })
       }
     } catch {
-      toast.error('Failed to remove member')
+      toast.error('Network error — try again when online')
     }
   }
 

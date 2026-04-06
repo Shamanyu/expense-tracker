@@ -10,6 +10,7 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { ListSkeleton } from '@/components/common/LoadingSkeleton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { recordSettlement } from '@/app/actions/settlements'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useState } from 'react'
@@ -44,13 +45,13 @@ export function SettleUpList({ groupId }: { groupId: string }) {
     const key = `${from}-${to}`
     setSettlingId(key)
     try {
-      const result = await recordSettlement({
+      const result = await callServerAction(() => recordSettlement({
         group_id: groupId,
         payer_id: from,
         payee_id: to,
         amount,
         currency,
-      })
+      }))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -61,7 +62,7 @@ export function SettleUpList({ groupId }: { groupId: string }) {
         queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
       }
     } catch {
-      toast.error('Failed to record payment')
+      toast.error('Network error — try again when online')
     } finally {
       setSettlingId(null)
     }

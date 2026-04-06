@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { addMember } from '@/app/actions/groups'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { useQueryClient } from '@tanstack/react-query'
 
 export function InviteMemberForm({ groupId }: { groupId: string }) {
@@ -23,7 +24,7 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
 
     setIsLoading(true)
     try {
-      const result = await addMember(groupId, trimmed)
+      const result = await callServerAction(() => addMember(groupId, trimmed))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -38,7 +39,7 @@ export function InviteMemberForm({ groupId }: { groupId: string }) {
       }
     } catch (err) {
       console.error('addMember failed:', err)
-      toast.error('Failed to add member')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }

@@ -7,6 +7,7 @@ import { useExpense } from '@/hooks/useExpenses'
 import { useExpenseSplits } from '@/hooks/useExpenseSplits'
 import { ExpenseForm } from '@/components/expenses/ExpenseForm'
 import { updateExpense, deleteExpense } from '@/app/actions/expenses'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ArrowLeft, Trash2 } from 'lucide-react'
@@ -42,7 +43,7 @@ export default function EditExpensePage({
   const handleSubmit = async (data: Record<string, unknown>) => {
     setIsSubmitting(true)
     try {
-      const result = await updateExpense(expenseId, {
+      const result = await callServerAction(() => updateExpense(expenseId, {
         group_id: groupId,
         description: data.description as string,
         amount: data.amount as number,
@@ -53,7 +54,7 @@ export default function EditExpensePage({
         date: data.date as string,
         notes: data.notes as string | undefined,
         splits: data.splits as { user_id: string; amount: number }[],
-      })
+      }))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -64,7 +65,7 @@ export default function EditExpensePage({
         router.push(`/groups/${groupId}`)
       }
     } catch {
-      toast.error('Failed to update expense')
+      toast.error('Network error — try again when online')
     } finally {
       setIsSubmitting(false)
     }
@@ -72,7 +73,7 @@ export default function EditExpensePage({
 
   const handleDelete = async () => {
     try {
-      const result = await deleteExpense(expenseId, groupId)
+      const result = await callServerAction(() => deleteExpense(expenseId, groupId))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -83,7 +84,7 @@ export default function EditExpensePage({
         router.push(`/groups/${groupId}`)
       }
     } catch {
-      toast.error('Failed to delete expense')
+      toast.error('Network error — try again when online')
     }
   }
 

@@ -21,6 +21,7 @@ import { computeNetBalances } from '@/lib/utils/balances'
 import { cn } from '@/lib/utils'
 import { useCreateGroup, addMembersToGroup } from '@/hooks/useCreateGroup'
 import { archiveGroup, unarchiveGroup } from '@/app/actions/groups'
+import { callServerAction } from '@/lib/utils/serverAction'
 
 type GroupListItem = {
   group: {
@@ -144,22 +145,30 @@ export default function GroupsPage() {
   const queryClient = useQueryClient()
 
   const handleArchive = async (groupId: string) => {
-    const result = await archiveGroup(groupId)
-    if (result?.error) {
-      toast.error(result.error)
-    } else {
-      toast.success('Group archived')
-      queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+    try {
+      const result = await callServerAction(() => archiveGroup(groupId))
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Group archived')
+        queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+      }
+    } catch {
+      toast.error('Network error — try again when online')
     }
   }
 
   const handleUnarchive = async (groupId: string) => {
-    const result = await unarchiveGroup(groupId)
-    if (result?.error) {
-      toast.error(result.error)
-    } else {
-      toast.success('Group unarchived')
-      queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+    try {
+      const result = await callServerAction(() => unarchiveGroup(groupId))
+      if (result?.error) {
+        toast.error(result.error)
+      } else {
+        toast.success('Group unarchived')
+        queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
+      }
+    } catch {
+      toast.error('Network error — try again when online')
     }
   }
 

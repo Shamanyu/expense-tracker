@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Send } from 'lucide-react'
 import { sendFriendRequest } from '@/app/actions/friends'
+import { callServerAction } from '@/lib/utils/serverAction'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -19,7 +20,7 @@ export function FriendSearch() {
 
     setIsLoading(true)
     try {
-      const result = await sendFriendRequest(email.trim())
+      const result = await callServerAction(() => sendFriendRequest(email.trim()))
       if (result?.error) {
         toast.error(result.error)
       } else {
@@ -32,7 +33,7 @@ export function FriendSearch() {
         queryClient.invalidateQueries({ queryKey: ['friends'] })
       }
     } catch {
-      toast.error('Failed to send request')
+      toast.error('Network error — try again when online')
     } finally {
       setIsLoading(false)
     }

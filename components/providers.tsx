@@ -8,6 +8,7 @@ import { useState, type ReactNode } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { createGroup } from '@/app/actions/groups'
 import { createExpense } from '@/app/actions/expenses'
+import { callServerAction } from '@/lib/utils/serverAction'
 
 const persister =
   typeof window !== 'undefined'
@@ -32,7 +33,7 @@ export function Providers({ children }: { children: ReactNode }) {
     // Register mutation defaults so rehydrated mutations know how to replay
     client.setMutationDefaults(['createGroup'], {
       mutationFn: async (data: Parameters<typeof createGroup>[0]) => {
-        const result = await createGroup(data)
+        const result = await callServerAction(() => createGroup(data))
         if (result.error) throw new Error(result.error)
         return result.data
       },
@@ -40,7 +41,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
     client.setMutationDefaults(['createExpense'], {
       mutationFn: async (data: Parameters<typeof createExpense>[0]) => {
-        const result = await createExpense(data)
+        const result = await callServerAction(() => createExpense(data))
         if (result.error) throw new Error(result.error)
         return result.data
       },
