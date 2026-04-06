@@ -6,6 +6,8 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { useState, type ReactNode } from 'react'
 import { Toaster } from '@/components/ui/sonner'
+import { createGroup } from '@/app/actions/groups'
+import { createExpense } from '@/app/actions/expenses'
 
 const persister =
   typeof window !== 'undefined'
@@ -13,18 +15,39 @@ const persister =
     : undefined
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000,
-            gcTime: 1000 * 60 * 60 * 24, // 24 hours — keep cache for offline use
-            refetchOnWindowFocus: false,
-          },
+  const [queryClient] = useState(() => {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: {
+          staleTime: 60 * 1000,
+          gcTime: 1000 * 60 * 60 * 24, // 24 hours — keep cache for offline use
+          refetchOnWindowFocus: false,
         },
-      })
-  )
+        mutations: {
+          networkMode: 'offlineFirst',
+        },
+      },
+    })
+
+    // Register mutation defaults so rehydrated mutations know how to replay
+    client.setMutationDefaults(['createGroup'], {
+      mutationFn: async (data: Parameters<typeof createGroup>[0]) => {
+        const result = await createGroup(data)
+        if (result.error) throw new Error(result.error)
+        return result.data
+      },
+    })
+
+    client.setMutationDefaults(['createExpense'], {
+      mutationFn: async (data: Parameters<typeof createExpense>[0]) => {
+        const result = await createExpense(data)
+        if (result.error) throw new Error(result.error)
+        return result.data
+      },
+    })
+
+    return client
+  })
 
   if (!persister) {
     // SSR: no persistence
@@ -37,6 +60,12 @@ export function Providers({ children }: { children: ReactNode }) {
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }}
+      onSuccess={() => {
+        // Resume any mutations that were paused while offline
+        queryClient.resumePausedMutations().then(() => {
+          queryClient.invalidateQueries()
+        })
+      }}
     >
       {children}
       <Toaster richColors position="top-right" />

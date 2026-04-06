@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { GroupCard } from '@/components/groups/GroupCard'
 import { GroupForm } from '@/components/groups/GroupForm'
-import { createGroup, addMember } from '@/app/actions/groups'
 import { EmptyState } from '@/components/common/EmptyState'
 import { CardSkeleton } from '@/components/common/LoadingSkeleton'
 import { Button } from '@/components/ui/button'
@@ -15,11 +14,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Plus, Users, Eye, EyeOff } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { computeNetBalances } from '@/lib/utils/balances'
+import { useCreateGroup, addMembersToGroup } from '@/hooks/useCreateGroup'
 
 function useMyGroups() {
   const supabase = createBrowserClient()
@@ -107,9 +106,8 @@ function useMyGroups() {
 export default function GroupsPage() {
   const { data: allGroups, isLoading } = useMyGroups()
   const [open, setOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSettled, setShowSettled] = useState(false)
-  const queryClient = useQueryClient()
+  const createGroupMutation = useCreateGroup()
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -131,52 +129,38 @@ export default function GroupsPage() {
   )
   const displayedGroups = showSettled ? regularGroups : activeGroups
 
-  const handleCreateGroup = async (data: {
+  const handleCreateGroup = (data: {
     name: string
     description?: string
     default_currency: string
     memberEmails?: string[]
   }) => {
-    setIsSubmitting(true)
-    try {
-      const result = await createGroup({
+    createGroupMutation.mutate(
+      {
         name: data.name,
         description: data.description,
         default_currency: data.default_currency,
-      })
-      if (result?.error) {
-        toast.error(result.error)
-      } else {
-        // Add members if any
-        let invited = 0
-        let added = 0
-        if (data.memberEmails?.length && result?.data?.id) {
-          for (const email of data.memberEmails) {
-            if (email.trim()) {
-              const memberResult = await addMember(result.data.id, email.trim())
-              if (memberResult?.error) {
-                toast.error(`${email}: ${memberResult.error}`)
-              } else if (memberResult?.invited) {
-                invited++
-              } else {
-                added++
-              }
-            }
+      },
+      {
+        onSuccess: async (group) => {
+          // Add members (requires group ID from server, so only works online)
+          if (data.memberEmails?.length && group?.id) {
+            const { added, invited, errors } = await addMembersToGroup(
+              group.id,
+              data.memberEmails,
+            )
+            for (const err of errors) toast.error(err)
+            const parts: string[] = ['Group created!']
+            if (added > 0) parts.push(`${added} member${added > 1 ? 's' : ''} added.`)
+            if (invited > 0) parts.push(`${invited} invite${invited > 1 ? 's' : ''} sent — they'll be added when they join Settl.`)
+            toast.success(parts.join(' '))
+          } else {
+            toast.success('Group created!')
           }
-        }
-        const parts: string[] = ['Group created!']
-        if (added > 0) parts.push(`${added} member${added > 1 ? 's' : ''} added.`)
-        if (invited > 0) parts.push(`${invited} invite${invited > 1 ? 's' : ''} sent — they'll be added when they join Settl.`)
-        toast.success(parts.join(' '))
-        setOpen(false)
-        queryClient.invalidateQueries({ queryKey: ['my-groups-with-balances'] })
-        queryClient.invalidateQueries({ queryKey: ['groups'] })
-      }
-    } catch {
-      toast.error('Failed to create group')
-    } finally {
-      setIsSubmitting(false)
-    }
+          setOpen(false)
+        },
+      },
+    )
   }
 
   return (
@@ -208,7 +192,7 @@ export default function GroupsPage() {
               <DialogHeader>
                 <DialogTitle>Create a new group</DialogTitle>
               </DialogHeader>
-              <GroupForm onSubmit={handleCreateGroup} isSubmitting={isSubmitting} />
+              <GroupForm onSubmit={handleCreateGroup} isSubmitting={createGroupMutation.isPending} />
             </DialogContent>
           </Dialog>
         </div>

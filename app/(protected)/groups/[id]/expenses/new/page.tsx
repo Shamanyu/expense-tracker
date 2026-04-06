@@ -1,12 +1,10 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useGroup } from '@/hooks/useGroups'
 import { ExpenseForm } from '@/components/expenses/ExpenseForm'
-import { createExpense } from '@/app/actions/expenses'
-import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { useCreateExpense } from '@/hooks/useCreateExpense'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -18,13 +16,11 @@ export default function NewExpensePage({
   const { id: groupId } = use(params)
   const { data: group } = useGroup(groupId)
   const router = useRouter()
-  const queryClient = useQueryClient()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const createExpenseMutation = useCreateExpense(groupId)
 
-  const handleSubmit = async (data: Parameters<typeof createExpense>[0]['splits'] extends infer _ ? Record<string, unknown> : never) => {
-    setIsSubmitting(true)
-    try {
-      const result = await createExpense({
+  const handleSubmit = (data: Record<string, unknown>) => {
+    createExpenseMutation.mutate(
+      {
         group_id: groupId,
         description: data.description as string,
         amount: data.amount as number,
@@ -35,22 +31,13 @@ export default function NewExpensePage({
         date: data.date as string,
         notes: data.notes as string | undefined,
         splits: data.splits as { user_id: string; amount: number }[],
-      })
-      if (result?.error) {
-        toast.error(result.error)
-      } else {
-        toast.success('Expense added!')
-        queryClient.invalidateQueries({ queryKey: ['expenses', groupId] })
-        queryClient.invalidateQueries({ queryKey: ['balances', groupId] })
-        queryClient.invalidateQueries({ queryKey: ['dashboard-balances'] })
-        queryClient.invalidateQueries({ queryKey: ['activity'] })
-        router.push(`/groups/${groupId}`)
-      }
-    } catch {
-      toast.error('Failed to add expense')
-    } finally {
-      setIsSubmitting(false)
-    }
+      },
+      {
+        onSuccess: () => {
+          router.push(`/groups/${groupId}`)
+        },
+      },
+    )
   }
 
   return (
@@ -72,7 +59,7 @@ export default function NewExpensePage({
           groupId={groupId}
           defaultCurrency={group?.default_currency ?? 'INR'}
           onSubmit={handleSubmit as never}
-          isSubmitting={isSubmitting}
+          isSubmitting={createExpenseMutation.isPending}
         />
       </div>
     </div>
