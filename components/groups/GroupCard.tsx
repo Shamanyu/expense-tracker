@@ -5,6 +5,7 @@ import { Users, Archive, ArchiveRestore } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils/currency'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 export function GroupCard({
   group,
@@ -29,9 +30,15 @@ export function GroupCard({
 }) {
   const [loading, setLoading] = useState(false)
 
+  const hasBalance = Math.abs(yourBalance) > 0.01
+
   const handleArchiveClick = async (e: React.MouseEvent) => {
     e.preventDefault() // prevent Link navigation
     e.stopPropagation()
+    if (!archived && hasBalance) {
+      toast.error('Settle all balances before archiving this group')
+      return
+    }
     setLoading(true)
     try {
       if (archived && onUnarchive) {
@@ -47,13 +54,18 @@ export function GroupCard({
   return (
     <Link href={`/groups/${group.id}`}>
       <div className={cn(
-        "bg-slate-800 rounded-2xl border shadow-sm p-4 hover:border-slate-600 transition-colors relative group/card",
-        archived ? "border-slate-700/50 opacity-70" : "border-slate-700"
+        "rounded-2xl border shadow-sm p-4 hover:border-slate-600 transition-colors relative group/card",
+        archived
+          ? "bg-slate-800/50 border-slate-700/40"
+          : "bg-slate-800 border-slate-700"
       )}>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <h3 className="text-base font-semibold text-slate-100 truncate">
+              <h3 className={cn(
+                "text-base font-semibold truncate",
+                archived ? "text-slate-400" : "text-slate-100"
+              )}>
                 {group.name}
               </h3>
               {archived && (
@@ -61,7 +73,7 @@ export function GroupCard({
               )}
             </div>
             {group.description && (
-              <p className="text-sm text-slate-400 truncate mt-0.5">
+              <p className={cn("text-sm truncate mt-0.5", archived ? "text-slate-500" : "text-slate-400")}>
                 {group.description}
               </p>
             )}
@@ -88,7 +100,7 @@ export function GroupCard({
           </button>
         </div>
         <div className="flex items-center justify-between mt-3">
-          <div className="flex items-center gap-1.5 text-sm text-slate-400">
+          <div className={cn("flex items-center gap-1.5 text-sm", archived ? "text-slate-500" : "text-slate-400")}>
             <Users className="w-4 h-4" />
             <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
           </div>
