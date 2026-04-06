@@ -54,7 +54,9 @@ export async function createExpense(formData: {
   if (splitError) return { error: splitError.message, data: null }
 
   // Notify group members for large expenses (fire and forget)
-  if (isLargeExpense(formData.amount, formData.currency)) {
+  const large = isLargeExpense(formData.amount, formData.currency)
+  console.log(`[expense-notify] amount=${formData.amount} currency=${formData.currency} isLarge=${large}`)
+  if (large) {
     notifyGroupMembersOfExpense(supabase, {
       creatorId: user.id,
       groupId: formData.group_id,
@@ -62,7 +64,7 @@ export async function createExpense(formData: {
       amount: formData.amount,
       currency: formData.currency,
       splits: formData.splits,
-    }).catch(() => {})
+    }).catch((err) => console.error('[expense-notify] failed:', err))
   }
 
   revalidatePath(`/groups/${formData.group_id}`)
@@ -104,6 +106,7 @@ async function notifyGroupMembersOfExpense(
     .neq('user_id', opts.creatorId)
 
   const memberIds = (members ?? []).map((m) => m.user_id)
+  console.log(`[expense-notify] group=${opts.groupId} members to notify: ${memberIds.length}`)
   if (memberIds.length === 0) return
 
   const { data: profiles } = await supabase
@@ -117,6 +120,7 @@ async function notifyGroupMembersOfExpense(
     const share = splitMap.get(profile.id)
     const yourShare = share ? formatCurrency(share, opts.currency) : undefined
 
+    console.log(`[expense-notify] sending to ${profile.email}, share=${yourShare}`)
     sendExpenseNotificationEmail({
       to: profile.email,
       adderName,
@@ -125,7 +129,7 @@ async function notifyGroupMembersOfExpense(
       currency: opts.currency,
       groupName,
       yourShare,
-    }).catch(() => {})
+    }).catch((err) => console.error(`[expense-notify] email to ${profile.email} failed:`, err))
   }
 }
 
